@@ -9,15 +9,15 @@ Make the required runtime integrations unmistakable while keeping the 20-hour bu
 ```mermaid
 flowchart LR
     U["Independent filmmaker"] --> W["Blazor web app on Cloud Run"]
-    W --> A["ASP.NET Core application API"]
-    A --> S["Cloud Storage: original demo clip"]
-    A --> G["Gemini multimodal analysis"]
-    A --> D["Google ADK agent service"]
+    W --> A["ASP.NET Core application service"]
+    A --> D["Private Google ADK service on Cloud Run"]
+    D --> S["Cloud Storage: original demo clip"]
+    D --> G["Gemini multimodal analysis"]
     D --> P["Parallel Search runtime call"]
     P --> D
     D --> A
     A --> W
-    A --> M["Secret Manager"]
+    D --> M["Secret Manager"]
 ```
 
 ## Runtime sequence
@@ -26,14 +26,16 @@ flowchart LR
 sequenceDiagram
     actor User
     participant UI as Blazor UI
-    participant API as C# API
+    participant API as C# Web Service
     participant Gemini
     participant Agent as Google ADK Agent
     participant Parallel
     User->>UI: Open included rough cut
     UI->>API: Analyze clip
-    API->>Gemini: Video plus structured analysis instruction
-    Gemini-->>API: Timestamped review candidates
+    API->>Agent: Analyze configured demo asset
+    Agent->>Gemini: Video plus structured analysis instruction
+    Gemini-->>Agent: Timestamped review candidates
+    Agent-->>API: Validated findings
     API-->>UI: Render timeline findings
     User->>UI: Investigate finding
     UI->>API: Start evidence task
@@ -74,7 +76,9 @@ Hosts the web/API service and, if needed, a small Python ADK service. Minimum in
 
 ### Storage and secrets
 
-Use Cloud Storage only if the demo clip cannot be packaged safely with the application. Store partner credentials in Secret Manager or deployment environment variables; never in source control.
+Use Cloud Storage for the Gemini-readable copy of the original demo clip and package or serve the matching playback copy from the web application. Store the Parallel credential in Secret Manager; never in source control or browser traffic.
+
+The implementation-ready service boundaries, file tree, data contracts, failure rules, and verification gates are maintained in [SPEC.md](SPEC.md).
 
 ## Evidence contract
 

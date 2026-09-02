@@ -1,5 +1,7 @@
 # ClearCut
 
+![ClearCut logo](assets/brand/clearcut-logo.png)
+
 > Turn a rough cut into timestamped, cited clearance evidence before legal review.
 
 ClearCut is a clearance-preparation agent for independent filmmakers and small production teams approaching final cut or distribution. It identifies material that may need follow-up, researches selected findings, and organizes evidence for human review.
@@ -12,7 +14,7 @@ Independent filmmakers must review visible marks, factual claims, music, and oth
 
 ## The experience
 
-1. Upload one original 30–45 second fictional commercial.
+1. Open the included original 30–45 second fictional commercial.
 2. Gemini identifies three planted review candidates at exact timestamps: a fictional brand mark, a factual claim, and an original music cue.
 3. Select a finding to investigate.
 4. A Google Cloud Agent Builder/ADK agent converts it into a focused research task.
@@ -42,6 +44,8 @@ Architecture and deployment details are documented in [docs/ARCHITECTURE.md](doc
 The MVP is deliberately limited to one original clip, three seeded findings, one live evidence workflow, and one human-reviewed checklist. See [docs/SCOPE.md](docs/SCOPE.md).
 
 Detailed user behavior and testable acceptance criteria are defined in [docs/PRD.md](docs/PRD.md).
+
+The implementation-ready stack, service boundaries, file structure, data flow, AI contracts, risks, and verification gates are defined in [docs/SPEC.md](docs/SPEC.md).
 
 ## Judging evidence
 
