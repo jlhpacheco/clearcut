@@ -53,9 +53,10 @@ Deadline: **September 9, 2026 at 2:00 PM Pacific Time**.
 
 ## Devpost fields
 
-- [ ] Project name: ClearCut
-- [ ] Tagline is final and under 200 characters.
-- [ ] Description reflects only verified features.
+- [x] Devpost project created: https://devpost.com/software/clearcut-4xz39k
+- [x] Project name: ClearCut
+- [x] Tagline is saved and under 200 characters.
+- [x] Description clearly separates completed planning from planned implementation.
 - [x] Submitter type: Individual.
 - [x] Government-employee answer: No.
 - [x] Country of residence: United States.

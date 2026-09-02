@@ -2,6 +2,9 @@
 
 This is a working draft. Final answers must describe only verified functionality.
 
+- **Devpost project:** https://devpost.com/software/clearcut-4xz39k
+- **Hackathon submission status:** Draft; not submitted
+
 ## Project
 
 - **Name:** ClearCut
@@ -16,7 +19,7 @@ This is a working draft. Final answers must describe only verified functionality
 - **Team size:** 1
 - **Repository:** https://github.com/jlhpacheco/clearcut
 - **Hosted project:** Pending Cloud Run deployment
-- **Demo video:** Pending public YouTube upload
+- **Demo video:** Pending public YouTube upload to Jose Luis Pacheco's channel
 - **First time using Parallel:** Yes
 - **IBM / Grafana / Clickhouse / Replit first-time questions:** Use each provided N/A option
 
