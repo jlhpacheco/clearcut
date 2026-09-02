@@ -41,6 +41,8 @@ Architecture and deployment details are documented in [docs/ARCHITECTURE.md](doc
 
 The MVP is deliberately limited to one original clip, three seeded findings, one live evidence workflow, and one human-reviewed checklist. See [docs/SCOPE.md](docs/SCOPE.md).
 
+Detailed user behavior and testable acceptance criteria are defined in [docs/PRD.md](docs/PRD.md).
+
 ## Judging evidence
 
 We track the official Stage One gate and all four equal-weight Stage Two criteria without claiming unfinished work. See [docs/JUDGING.md](docs/JUDGING.md) and [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md).
