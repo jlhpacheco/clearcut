@@ -1,0 +1,39 @@
+<div class="mb-4">
+    @if (Sources != null && Sources.Count > 0)
+    {
+        <h5 class="small text-secondary font-weight-bold mb-3 uppercase" style="letter-spacing: 0.05em;">Retrieved Evidence Sources</h5>
+        <div class="row">
+            @foreach (var source in Sources)
+            {
+                <div class="col-12 mb-3">
+                    <div class="p-3 rounded border" style="background-color: rgba(19, 25, 36, 0.5); border-color: var(--border-subtle) !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="small text-white mb-0" style="font-weight: 600;">@source.Title</h6>
+                                <span class="text-secondary" style="font-size: 0.75rem;">
+                                    Publisher: @source.Publisher | Retrieved: @source.RetrievalDate
+                                </span>
+                            </div>
+                            <a href="@source.Url" target="_blank" rel="noopener noreferrer" class="btn btn-secondary-cinematic py-1 px-2 font-weight-bold" style="font-size: 0.75rem;">
+                                Open Source ↗
+                            </a>
+                        </div>
+                        <p class="small text-secondary mb-0" style="line-height: 1.4;">
+                            @source.RelevanceSummary
+                        </p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-4 rounded border" style="background-color: rgba(19, 25, 36, 0.2); border-color: var(--border-subtle) !important; border-style: dashed !important;">
+            <p class="small text-secondary mb-0">No evidence retrieved yet. Select "Research with Parallel" to run agent research.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<EvidenceSource>? Sources { get; set; }
+}

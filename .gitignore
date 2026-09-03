@@ -1,0 +1,38 @@
+# Secrets and Local Configuration
+.env
+.env.local
+.env.*.local
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Build and Publish Artifacts
+**/bin/
+**/obj/
+**/publish/
+
+# Python Build and Cache Artifacts
+**/__pycache__/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.venv/
+**/venv/
+**/env/
+*.pyc
+*.pyo
+*.pyd
+
+# Playwright Output
+**/playwright-report/
+**/test-results/
+
+# Log Files and Editor Artifacts
+*.log
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.db
+*.db-journal

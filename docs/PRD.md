@@ -6,7 +6,7 @@ ClearCut is a clearance-preparation assistant for independent filmmakers and sma
 
 ClearCut is not a legal service. It does not determine whether material is legally cleared, replace counsel, certify errors-and-omissions readiness, or make a final rights decision. Its job is to make the preparation work visible, organized, and evidence-backed.
 
-The hackathon MVP is a focused, anonymous demonstration built around one newly created 30–45 second fictional commercial. The clip contains three planted review candidates: a fictional brand mark, a factual claim, and an original music cue.
+The hackathon MVP is a focused, anonymous demonstration built around one newly created 30–45 second synthetic near-final scene from a fictional independent science-fiction film. The scene contains exactly three organically embedded review questions: a fictional brand mark, a precise product claim, and an original music cue. Its ad-saturated environment illustrates production-clearance workload without imitating or naming any existing film.
 
 ## Target User
 
@@ -37,7 +37,7 @@ An independent producer or post-production supervisor preparing a project for at
 
 ## Core User Journey
 
-1. The user opens ClearCut and sees the included fictional commercial ready for review.
+1. The user opens ClearCut and sees the included fictional near-final film scene ready for review, together with its cut version and delivery deadline.
 2. The page briefly explains the outcome and states that ClearCut provides research assistance, not legal advice.
 3. The user selects **Analyze with Gemini**.
 4. ClearCut visibly analyzes the clip and returns three valid findings in chronological order.

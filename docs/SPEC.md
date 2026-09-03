@@ -334,7 +334,7 @@ Fixtures support tests and offline UI development only. The submitted hosted gol
 The public demonstration should take approximately 100–120 seconds:
 
 1. Open the hosted app and establish the independent-filmmaker problem and disclaimer.
-2. Play several seconds of the original fictional commercial.
+2. Play several seconds of the original synthetic near-final film scene.
 3. Select **Analyze with Gemini** and show the three timestamped findings.
 4. Select the factual-claim finding and jump to its exact moment.
 5. Select **Research with Parallel** and keep the visible agent stages on screen.

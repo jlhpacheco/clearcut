@@ -1,0 +1,110 @@
+<div class="p-3 rounded border" style="background-color: var(--bg-card); border-color: var(--border-subtle) !important;">
+    <h5 class="small text-secondary font-weight-bold mb-3 uppercase" style="letter-spacing: 0.05em;">Human Disposition & Action</h5>
+
+    <div class="disposition-selector">
+        @foreach (Disposition disp in Enum.GetValues<Disposition>())
+        {
+            var isSelected = SelectedDisposition == disp;
+            var isDismiss = disp == Disposition.Dismiss;
+            var isAllowed = !isDismiss || CanDismiss;
+
+            <button type="button" 
+                    class="disposition-btn @(isSelected ? "selected" : "")" 
+                    disabled="@(!isAllowed)"
+                    title="@disp.GetDescription()"
+                    @onclick="(() => HandleSelectDisposition(disp))">
+                @disp.ToString()
+            </button>
+        }
+    </div>
+
+    @if (SelectedDisposition == Disposition.Dismiss)
+    {
+        <div class="p-3 rounded mb-3 border" style="background-color: rgba(20, 184, 166, 0.05); border-color: var(--teal-primary) !important;">
+            <div class="form-check d-flex align-items-center gap-2">
+                <input class="form-check-input darker-border-checkbox" 
+                       type="checkbox" 
+                       id="dismissConfirmCheckbox" 
+                       checked="@_hasDismissConfirmation"
+                       @onchange="HandleDismissConfirmChanged" />
+                <label class="form-check-label small text-white" for="dismissConfirmCheckbox" style="cursor: pointer; font-weight: 500;">
+                    I confirm that I have reviewed the evidence and this is an accountable human decision to dismiss.
+                </label>
+            </div>
+        </div>
+    }
+
+    @if (!CanDismiss && SelectedDisposition == null)
+    {
+        <p class="small text-secondary mb-3" style="line-height: 1.4;">
+            <span class="text-amber" style="color: #F59E0B; font-weight: 600;">Note:</span> "Dismiss" is unavailable because successful research evidence has not been retrieved for this finding. Please research with Parallel first.
+        </p>
+    }
+
+    <div class="mb-3">
+        <label for="reviewerNoteInput" class="small text-secondary font-weight-bold mb-1 uppercase" style="letter-spacing: 0.03em;">Reviewer Notes (Optional)</label>
+        <textarea id="reviewerNoteInput" 
+                  class="form-input-cinematic" 
+                  rows="3" 
+                  placeholder="Record evidence analysis, follow-up actions, or professional citations..."
+                  value="@ReviewerNote"
+                  @oninput="HandleNoteInput"></textarea>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FindingId { get; set; } = string.Empty;
+    [Parameter] public Disposition? SelectedDisposition { get; set; }
+    [Parameter] public string ReviewerNote { get; set; } = string.Empty;
+    [Parameter] public bool CanDismiss { get; set; }
+    [Parameter] public EventCallback<Disposition?> OnDispositionChanged { get; set; }
+    [Parameter] public EventCallback<string> OnNoteChanged { get; set; }
+
+    private bool _hasDismissConfirmation;
+
+    protected override void OnParametersSet()
+    {
+        // Reset local confirmation check when finding ID changes or disposition changes away from Dismiss
+        if (SelectedDisposition != Disposition.Dismiss)
+        {
+            _hasDismissConfirmation = false;
+        }
+    }
+
+    private async Task HandleSelectDisposition(Disposition disposition)
+    {
+        if (disposition == Disposition.Dismiss)
+        {
+            if (!CanDismiss) return;
+            // Select but wait for confirmation before fully saving
+            _hasDismissConfirmation = false;
+            await OnDispositionChanged.InvokeAsync(disposition);
+        }
+        else
+        {
+            _hasDismissConfirmation = false;
+            await OnDispositionChanged.InvokeAsync(disposition);
+        }
+    }
+
+    private async Task HandleDismissConfirmChanged(ChangeEventArgs e)
+    {
+        _hasDismissConfirmation = e.Value is bool b && b;
+        if (!_hasDismissConfirmation)
+        {
+            // If unchecked, reset the disposition back to null (pending)
+            await OnDispositionChanged.InvokeAsync(null);
+        }
+        else
+        {
+            // If checked, keep or re-apply Dismiss
+            await OnDispositionChanged.InvokeAsync(Disposition.Dismiss);
+        }
+    }
+
+    private async Task HandleNoteInput(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? string.Empty;
+        await OnNoteChanged.InvokeAsync(val);
+    }
+}

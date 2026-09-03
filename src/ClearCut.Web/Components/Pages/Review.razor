@@ -1,0 +1,314 @@
+@page "/"
+@inject ReviewSessionStore Store
+@inject ReportService ReportService
+@inject IConfiguration Configuration
+@implements IDisposable
+
+<PageTitle>ClearCut — Independent Filmmaker Clearance Assistant</PageTitle>
+
+<div class="screening-room-container no-print">
+    @if (Configuration.GetValue<bool>("UseFixtures", false))
+    {
+        <div class="alert alert-warning text-center font-weight-bold p-3 mb-4" style="background-color: #D97706; color: #0B0E14; letter-spacing: 0.05em; font-size: 1.1rem; border: none; border-radius: 6px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);" role="alert">
+            FIXTURE MODE — NO LIVE SERVICES
+        </div>
+    }
+
+    <!-- Header Brand Area -->
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <img src="assets/brand/clearcut-logo.png" alt="ClearCut Logo" class="brand-logo-img" />
+            <h1 class="brand-text m-0">ClearCut</h1>
+            <span class="demo-label">Fictional Demo</span>
+        </div>
+        @if (Store.Session.Findings.Count > 0)
+        {
+            <button type="button" class="btn-secondary-cinematic py-1 px-3" style="font-size: 0.8rem;" @onclick="ConfirmStartOver">
+                Start Over
+            </button>
+        }
+    </header>
+
+    <!-- Fictional Media and Workflow Intro -->
+    @if (Store.Session.Findings.Count == 0)
+    {
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-7">
+                <h2 class="display-6 font-weight-bold text-white mb-3">Hollywood Screening Room</h2>
+                <p class="lead text-secondary mb-4" style="line-height: 1.5;">
+                    ClearCut helps independent filmmakers organize clearance research for E&O, distributor, or legal review. 
+                    Analyze rough cuts, generate agent research tasks via Parallel Search, and maintain a defensible, human-accountable record.
+                </p>
+                <div class="disclaimer-banner">
+                    <strong>Research Assistance Disclaimer:</strong> This application provides automated clearance-preparation research assistance. 
+                    It does not determine whether material is legally cleared, replace professional counsel, or provide legal advice. 
+                    The target filmmaker remains responsible for all final clearance decisions.
+                </div>
+                
+                <div class="mt-4">
+                    <button type="button" 
+                            class="btn-cinematic px-4 py-3" 
+                            disabled="@Store.IsOperationActive" 
+                            @onclick="AnalyzeVideoAsync">
+                        @if (Store.Session.IsAnalysisActive)
+                        {
+                            <span class="spinner-teal mr-2"></span>
+                            <span>Analyzing with Gemini...</span>
+                        }
+                        else
+                        {
+                            <span>Analyze with Gemini</span>
+                        }
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center">
+                <div class="p-4 rounded border" style="background-color: var(--bg-card); border-color: var(--border-subtle) !important;">
+                    <h5 class="small text-secondary font-weight-bold mb-3 uppercase" style="letter-spacing: 0.05em;">Included Film Clip</h5>
+                    <VideoPlayer />
+                    <p class="small text-secondary mt-3 mb-0" style="font-style: italic;">
+                        Demonstration commercial clip (30-45s) containing 3 planted review candidates.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Workspace (Split View) -->
+        <div class="disclaimer-banner">
+            <strong>Research Assistance Disclaimer:</strong> ClearCut provides research assistance and not legal advice. 
+            All clearance decisions must be confirmed and recorded as accountable human dispositions.
+        </div>
+
+        <div class="screening-layout">
+            <!-- Left Panel: Media & Evidence Details -->
+            <div>
+                <!-- Video Screen -->
+                <div class="mb-4">
+                    <VideoPlayer @ref="_videoPlayer" />
+                </div>
+
+                <!-- Active Finding Work Area -->
+                @if (_activeFinding != null)
+                {
+                    var status = Store.Session.ResearchStatus.TryGetValue(_activeFinding.FindingId, out var s) ? s : "pending";
+                    Store.Session.ResearchTasks.TryGetValue(_activeFinding.FindingId, out var task);
+                    Store.Session.Evidence.TryGetValue(_activeFinding.FindingId, out var sources);
+
+                    <div class="p-4 rounded border mb-4" style="background-color: var(--bg-card); border-color: var(--border-subtle) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h5 m-0 text-white">Active Research: @_activeFinding.Label</h3>
+                            
+                            @if (status == "pending" || status == "incomplete")
+                            {
+                                <button type="button" 
+                                        class="btn-cinematic py-1 px-3" 
+                                        disabled="@Store.IsOperationActive" 
+                                        @onclick="ResearchFindingAsync">
+                                    Research with Parallel
+                                </button>
+                            }
+                        </div>
+
+                        <!-- 4-Stage Research Timeline -->
+                        <ResearchTimeline Status="@status" ResearchTask="@task" />
+
+                        <!-- Evidence Sources -->
+                        <EvidenceCard Sources="@sources" />
+
+                        <!-- Human Disposition Panel -->
+                        @{
+                            Store.Session.Dispositions.TryGetValue(_activeFinding.FindingId, out var disp);
+                            Store.Session.ReviewerNotes.TryGetValue(_activeFinding.FindingId, out var note);
+                            var canDismiss = Store.CanDismiss(_activeFinding.FindingId);
+                        }
+                        <DispositionPanel FindingId="@_activeFinding.FindingId"
+                                          SelectedDisposition="@disp"
+                                          ReviewerNote="@note"
+                                          CanDismiss="@canDismiss"
+                                          OnDispositionChanged="((d) => Store.SetDisposition(_activeFinding.FindingId, d))"
+                                          OnNoteChanged="((n) => Store.SetReviewerNote(_activeFinding.FindingId, n))" />
+                    </div>
+                }
+            </div>
+
+            <!-- Right Panel: Chronological Findings List & Checklist -->
+            <div>
+                <h3 class="h6 text-secondary uppercase font-weight-bold mb-3" style="letter-spacing: 0.05em;">Timeline Findings</h3>
+                
+                <div class="findings-scroll-container mb-4" style="max-height: 500px; overflow-y: auto;">
+                    @foreach (var finding in Store.Session.Findings)
+                    {
+                        var isActive = _activeFinding?.FindingId == finding.FindingId;
+                        var status = Store.Session.ResearchStatus.TryGetValue(finding.FindingId, out var s) ? s : "pending";
+                        Store.Session.Evidence.TryGetValue(finding.FindingId, out var sources);
+                        var srcCount = sources?.Count ?? 0;
+
+                        <FindingCard Finding="@finding"
+                                     IsActive="@isActive"
+                                     ResearchStatus="@status"
+                                     SourceCount="@srcCount"
+                                     OnSelect="(() => SelectFinding(finding))" />
+                    }
+                </div>
+
+                <!-- Live Clearance Checklist & Print Button -->
+                <ClearanceChecklist Findings="@Store.Session.Findings"
+                                    Dispositions="@Store.Session.Dispositions"
+                                    ResearchStatuses="@Store.Session.ResearchStatus"
+                                    Evidence="@Store.Session.Evidence"
+                                    IsReadyToExport="@Store.CanPrint()" />
+            </div>
+        </div>
+    }
+
+    <!-- Analysis Failed State -->
+    @if (!string.IsNullOrEmpty(Store.Session.AnalysisError))
+    {
+        <div class="alert alert-danger p-4 rounded border mt-4 text-center" style="background-color: rgba(225, 29, 72, 0.1); border-color: var(--priority-check); max-width: 600px; margin: 0 auto;">
+            <h4 class="h5 mb-2" style="color: #FB7185;">@Store.Session.AnalysisError</h4>
+            <p class="small text-secondary mb-3">Please retry clip analysis to organize candidate timeline findings.</p>
+            <button type="button" class="btn-cinematic px-4 py-2" @onclick="AnalyzeVideoAsync">
+                Retry Analysis
+            </button>
+        </div>
+    }
+
+    <!-- Start Over Confirmation Dialog Modal -->
+    @if (_showStartOverConfirm)
+    {
+        <div class="modal d-block" style="background-color: rgba(11, 14, 20, 0.85); z-index: 1050;" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content" style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                    <div class="modal-header border-bottom-0">
+                        <h5 class="modal-title font-weight-bold">Start Over?</h5>
+                        <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="(() => _showStartOverConfirm = false)"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-secondary">This action will clear all current review findings, retrieved evidence sources, human dispositions, and reviewer notes. This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer border-top-0 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn-secondary-cinematic py-1 px-3" @onclick="(() => _showStartOverConfirm = false)">Cancel</button>
+                        <button type="button" class="btn-cinematic py-1 px-3" @onclick="ConfirmReset">Confirm Start Over</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Print-Only Page Layout -->
+<div class="print-only">
+    @{
+        var report = ReportService.GenerateReport(Store.Session);
+    }
+    <div class="print-header">
+        <h1 class="print-title">ClearCut Clearance Preparation Report</h1>
+        <p class="print-meta">Project: @report.ProjectName | Date: @report.ExportDate</p>
+    </div>
+
+    @foreach (var item in report.Items)
+    {
+        <div class="print-finding-row">
+            <div class="d-flex justify-content-between align-items-start">
+                <h3 class="print-finding-title">@item.Timeframe: @item.Label</h3>
+                <span class="print-finding-disposition">@item.Disposition</span>
+            </div>
+            
+            <p class="print-finding-detail"><strong>Category:</strong> @item.Category | <strong>Research Status:</strong> @item.ResearchStatus</p>
+            <p class="print-finding-detail"><strong>Observation:</strong> @item.Observation</p>
+            <p class="print-finding-detail"><strong>Reviewer Notes:</strong> @item.ReviewerNote</p>
+
+            @if (item.Sources.Count > 0)
+            {
+                <div class="print-evidence-section">
+                    <h4 class="small font-weight-bold mb-2">Retrieved Sources:</h4>
+                    @foreach (var src in item.Sources)
+                    {
+                        <div class="print-source">
+                            <strong>@src.Title</strong> (@src.Publisher)<br />
+                            <span class="text-muted">Source URL: @src.Url</span><br />
+                            @src.RelevanceSummary
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="print-disclaimer">
+        <strong>Disclaimer:</strong> @report.Disclaimer
+    </div>
+</div>
+
+@code {
+    private VideoPlayer? _videoPlayer;
+    private ReviewFinding? _activeFinding;
+    private bool _showStartOverConfirm;
+
+    protected override void OnInitialized()
+    {
+        Store.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Store.Session.Findings.Count > 0)
+        {
+            _activeFinding = Store.Session.Findings.FirstOrDefault();
+            StateHasChanged();
+        }
+    }
+
+    private async Task AnalyzeVideoAsync()
+    {
+        _activeFinding = null;
+        await Store.BeginAnalysisAsync();
+        if (Store.Session.Findings.Count > 0)
+        {
+            _activeFinding = Store.Session.Findings.First();
+            if (_videoPlayer != null)
+            {
+                await _videoPlayer.SeekToAsync(_activeFinding.StartSeconds);
+            }
+        }
+    }
+
+    private async Task ResearchFindingAsync()
+    {
+        if (_activeFinding == null) return;
+        await Store.BeginResearchAsync(_activeFinding.FindingId);
+    }
+
+    private async Task SelectFinding(ReviewFinding finding)
+    {
+        _activeFinding = finding;
+        if (_videoPlayer != null)
+        {
+            await _videoPlayer.SeekToAsync(finding.StartSeconds);
+        }
+        StateHasChanged();
+    }
+
+    private void ConfirmStartOver()
+    {
+        _showStartOverConfirm = true;
+    }
+
+    private async Task ConfirmReset()
+    {
+        _showStartOverConfirm = false;
+        _activeFinding = null;
+        Store.Reset();
+        if (_videoPlayer != null)
+        {
+            await _videoPlayer.SeekToAsync(0);
+        }
+    }
+
+    public void Dispose()
+    {
+        Store.OnChange -= StateHasChanged;
+    }
+}

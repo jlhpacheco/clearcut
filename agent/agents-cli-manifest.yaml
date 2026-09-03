@@ -1,0 +1,13 @@
+manifest-version: "v1"
+agent:
+  name: "clearcut-research-agent"
+  description: "ClearCut legal clearance-preparation research agent using Parallel Search tool"
+  version: "1.0.0"
+  entrypoint: "app.api:app"
+  port: 8000
+  runtime: "python312"
+  environment:
+    GOOGLE_CLOUD_PROJECT: "clearcut-agentic-20260901"
+    GOOGLE_CLOUD_LOCATION: "us-central1"
+    GEMINI_MODEL: "gemini-2.5-pro"
+    DEMO_VIDEO_GCS_URI: "gs://clearcut-bucket/clearcut-demo.mp4"

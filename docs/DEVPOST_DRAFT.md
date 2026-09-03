@@ -33,7 +33,7 @@ ClearCut is a clearance-preparation agent for independent filmmakers and small p
 
 Independent filmmakers routinely need to identify visible marks, factual claims, music, and other material that may require follow-up. The work is detailed, fragmented, and expensive to begin late. ClearCut helps organize the evidence; it does not make legal conclusions or replace qualified counsel.
 
-The demonstration uses one original 30–45 second fictional commercial. Gemini identifies three planted review candidates at exact timestamps: a fictional brand mark, a factual claim, and an original music cue. The user selects a finding, and a Google Cloud Agent Builder/ADK agent turns it into a focused research task. Parallel Search runs live and returns source-backed evidence. The user then records a human decision: dismiss, investigate, replace, or license.
+The demonstration uses one original 30–45 second synthetic near-final scene from a fictional independent science-fiction film. Gemini identifies exactly three organically embedded review questions at exact timestamps: fictional brand artwork, a precise product claim, and an original music cue. The user selects a finding, and a native Google ADK agent turns it into a focused research task. Parallel Search runs live and returns source-backed evidence with explicit uncertainty. The user then records a human decision: dismiss, investigate, replace, or license.
 
 The key moment exposes the complete evidence chain: timestamped finding → Gemini research task → visible Parallel Search → cited evidence card → human decision.
 

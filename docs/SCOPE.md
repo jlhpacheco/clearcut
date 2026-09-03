@@ -19,7 +19,7 @@ The product is time-boxed to 20 focused build hours. Every feature must strength
 ## Core user flow
 
 1. Open the hosted web application.
-2. Load the included original 30–45 second fictional commercial.
+2. Load the included original 30–45 second synthetic near-final scene from a fictional independent science-fiction film.
 3. Run Gemini multimodal analysis.
 4. Review exactly three timestamped candidates: fictional brand mark, factual claim, and original music cue.
 5. Select one candidate and inspect the Gemini-generated research task.

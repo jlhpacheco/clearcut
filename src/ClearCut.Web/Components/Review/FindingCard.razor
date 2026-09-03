@@ -1,0 +1,92 @@
+<div class="cinematic-card mb-3 @(IsActive ? "active" : "")" 
+     @onclick="(() => OnSelect.InvokeAsync())" 
+     style="cursor: pointer;"
+     tabindex="0"
+     @onkeydown="HandleKeyDown">
+    
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge-cinematic @GetCategoryBadgeClass()">
+            @Finding.GetCategoryDisplayName()
+        </span>
+        <span class="badge-cinematic @GetPriorityBadgeClass()">
+            @Finding.GetPriorityDisplayName()
+        </span>
+    </div>
+
+    <h4 class="h6 mb-1 text-white">@Finding.Label</h4>
+    <p class="small text-secondary mb-2">@Finding.Observation</p>
+
+    <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+        <span class="small text-white" style="font-weight: 600;">
+            Time: @ReportService.FormatTimeframe(Finding.StartSeconds, Finding.EndSeconds)
+        </span>
+        <span class="small" style="font-size: 0.75rem; font-weight: 500; color: @GetStatusColor()">
+            @GetResearchStatusText()
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ReviewFinding Finding { get; set; } = null!;
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ResearchStatus { get; set; } = "pending";
+    [Parameter] public int SourceCount { get; set; }
+    [Parameter] public EventCallback OnSelect { get; set; }
+
+    private string GetCategoryBadgeClass()
+    {
+        return Finding.Category switch
+        {
+            "brand_mark" => "badge-brand",
+            "factual_claim" => "badge-claim",
+            "music_cue" => "badge-music",
+            _ => "badge-secondary"
+        };
+    }
+
+    private string GetPriorityBadgeClass()
+    {
+        return Finding.ReviewPriority switch
+        {
+            "routine" => "badge-routine",
+            "attention" => "badge-attention",
+            "priority" => "badge-priority",
+            _ => "badge-secondary"
+        };
+    }
+
+    private string GetStatusColor()
+    {
+        return ResearchStatus switch
+        {
+            "ready" => "var(--teal-primary)",
+            "preparing" => "#38BDF8",
+            "searching" => "#38BDF8",
+            "reviewing" => "#38BDF8",
+            "incomplete" => "#F43F5E",
+            _ => "var(--text-secondary)"
+        };
+    }
+
+    private string GetResearchStatusText()
+    {
+        return ResearchStatus switch
+        {
+            "pending" => "Not Researched",
+            "preparing" => "Preparing...",
+            "searching" => "Searching...",
+            "reviewing" => "Reviewing...",
+            "ready" => $"Evidence Ready ({SourceCount} {(SourceCount == 1 ? "Source" : "Sources")})",
+            "incomplete" => "Evidence Incomplete",
+            _ => "Unknown"
+        };
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == " ")
+        {
+            await OnSelect.InvokeAsync();
+        }
+    }
+}

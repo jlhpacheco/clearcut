@@ -1,0 +1,49 @@
+{
+  "findings": [
+    {
+      "finding_id": "find-01-brand",
+      "category": "brand_mark",
+      "start_seconds": 4.5,
+      "end_seconds": 12.0,
+      "label": "LumaLeaf Logo",
+      "observation": "Green stylized leaf logo displaying 'LumaLeaf Energy'. Possible trademark clearance required.",
+      "review_priority": "attention",
+      "research_objective": "Determine if 'LumaLeaf Energy' or the green leaf logo matches registered trademarks or existing brand marks."
+    },
+    {
+      "finding_id": "find-02-claim",
+      "category": "factual_claim",
+      "start_seconds": 15.0,
+      "end_seconds": 22.5,
+      "label": "LumaLeaf 76% Energy Comparison",
+      "observation": "On-screen text and voiceover claim '76% more energy efficient than traditional sources'. LumaLeaf Energy study cited.",
+      "review_priority": "priority",
+      "research_objective": "Verify the scientific basis or public registry of the LumaLeaf Energy study claiming 76% energy efficiency."
+    },
+    {
+      "finding_id": "find-03-music",
+      "category": "music_cue",
+      "start_seconds": 25.0,
+      "end_seconds": 38.0,
+      "label": "Cinematic Ambient Synth Track",
+      "observation": "Electronic ambient background music cue playing during the second half of the clip.",
+      "review_priority": "routine",
+      "research_objective": "Identify the origin and licensing status of the electronic ambient background synth track."
+    }
+  ],
+  "evidence_sources": [
+    {
+      "title": "LumaLeaf Fictional Energy Study",
+      "publisher": "clearcut.web",
+      "retrieval_date": "2026-09-02",
+      "relevance_summary": "Fictional demonstration study containing token CC-EVID-9F4D explicitly stating LumaLeaf is a fictional brand.",
+      "url": "http://localhost:5000/evidence/lumaleaf-energy-study"
+    }
+  ],
+  "dispositions": [
+    "Dismiss",
+    "Investigate",
+    "Replace",
+    "License"
+  ]
+}

@@ -17,7 +17,7 @@ Official source: [Devpost rules and judging criteria](https://agentic-cinema.dev
 | All source, assets, and run instructions | Repository completeness audit | Pending implementation |
 | Public demo video, no longer than 3 minutes | YouTube or Vimeo URL; English narration or subtitles | Pending |
 | New project created during contest period | Repository and project history | Planned verification |
-| Original, non-infringing submission content | Fictional commercial, mark, presenter, music, and set | Pending asset creation |
+| Original, non-infringing submission content | Synthetic fictional near-final film scene, mark, presenter, music, and set | Pending asset creation |
 
 ## Stage Two: equal-weight criteria
 

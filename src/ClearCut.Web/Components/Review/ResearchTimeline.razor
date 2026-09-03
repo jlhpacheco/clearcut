@@ -1,0 +1,74 @@
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small text-secondary font-weight-bold uppercase" style="letter-spacing: 0.05em;">Agent Research Timeline</span>
+        @if (IsRunning)
+        {
+            <div class="d-flex align-items-center gap-2">
+                <span class="spinner-teal"></span>
+                <span class="small text-teal" style="color: var(--teal-primary); font-weight: 500;">Agent Active</span>
+            </div>
+        }
+    </div>
+
+    <div class="timeline-track">
+        <div class="timeline-step @GetStepClass("preparing")">
+            1. Preparing Task
+        </div>
+        <div class="timeline-step @GetStepClass("searching")">
+            2. Parallel Search
+        </div>
+        <div class="timeline-step @GetStepClass("reviewing")">
+            3. Reviewing Sources
+        </div>
+        <div class="timeline-step @GetStepClass("ready")">
+            4. Evidence Ready
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ResearchTask) && Status != "pending")
+    {
+        <div class="p-3 rounded mb-3 border" style="background-color: rgba(11, 14, 20, 0.4); border-color: var(--border-subtle) !important;">
+            <div class="text-secondary small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600;">
+                Agent Objective & Queries
+            </div>
+            <p class="small text-white mb-0" style="line-height: 1.4; font-family: monospace;">
+                @ResearchTask
+            </p>
+        </div>
+    }
+
+    @if (Status == "incomplete")
+    {
+        <div class="alert alert-danger p-2 small mb-3" style="background-color: rgba(225, 29, 72, 0.1); border-color: var(--priority-check); color: #FB7185;">
+            <strong>Evidence incomplete.</strong> Parallel Search timed out or failed to return valid sources. You can still set manual dispositions, or retry the search.
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Status { get; set; } = "pending";
+    [Parameter] public string? ResearchTask { get; set; }
+
+    private bool IsRunning => Status == "preparing" || Status == "searching" || Status == "reviewing";
+
+    private string GetStepClass(string stepName)
+    {
+        if (Status == "pending") return "";
+
+        if (Status == "incomplete")
+        {
+            // If incomplete, show steps up to search/review, but none highlighted as success unless we want to show failure
+            return "";
+        }
+
+        // Progression order
+        var order = new List<string> { "preparing", "searching", "reviewing", "ready" };
+        var currentIdx = order.IndexOf(Status);
+        var stepIdx = order.IndexOf(stepName);
+
+        if (currentIdx == stepIdx) return "active";
+        if (currentIdx > stepIdx) return "completed";
+
+        return "";
+    }
+}

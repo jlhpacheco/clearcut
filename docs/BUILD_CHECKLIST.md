@@ -6,6 +6,7 @@
 - **Comprehension checks:** N/A; pause only for credentials, irreversible external actions, or material product decisions.
 - **Git:** Commit tested restore points after items 3, 7, 10, 11, and 12.
 - **Verification:** Continuous automated tests plus truthful manual checks.
+- **Browser verification:** After the application build is stable, use a Google-generated TypeScript Playwright suite with exactly one worker. Cover the golden path, truthful failure states, keyboard use, mobile layout, accessibility basics, and deployed smoke checks.
 - **Check-in cadence:** Speed-run with visual pauses after items 3, 8, and 11.
 - **Execution grain:** Twelve outcome blocks totaling 20 hours; execute each block through 15–30 minute subcycles.
 - **Canonical checklist:** `docs/hackathon-build/checklist.md`; the repository mirror must match it by SHA-256 before each checklist commit.
@@ -36,7 +37,7 @@
 
 - [ ] **4. Produce the original media and safe evidence corpus (2.0 h)**
   Spec ref: `spec.md > Stack` and `spec.md > Demo And Submission Flow`
-  What to build: Using competition-permitted Google tooling, produce and encode one original 30–45 second fictional commercial containing unambiguous fictional-brand, factual-claim, and original-music cues. Create or select the safe text evidence corpus established in item 1. Store a web-playable copy and a private Cloud Storage copy and document prompts, models, dates, ownership, and sources.
+  What to build: Using competition-permitted Google tooling, produce and encode one original 30–45 second synthetic near-final scene from a fictional independent science-fiction film. Its ad-saturated environment must contain exactly three organic review questions: a fictional brand mark, a precise product claim, and an original music cue. Create or select the safe text evidence corpus established in item 1. Store a web-playable copy and a private Cloud Storage copy and document prompts, models, dates, ownership, and sources.
   Acceptance: No real marks, ads, slogans, posters, copyrighted music, COR/HeyGen material, or private footage appear; the three cue timestamps are clear; browser and Gemini copies are byte-identical; and the recorded demo never needs to open a third-party webpage.
   Verify: Review the complete clip with audio, confirm H.264/AAC browser playback and 30–45 second duration, record exact cue timestamps, compare SHA-256 hashes of local and downloaded GCS copies, verify bucket privacy/project ownership, and update `docs/PROVENANCE.md`.
 
@@ -72,19 +73,18 @@
 
 - [ ] **10. Harden failures, security, accessibility, and first-time usability (2.0 h)**
   Spec ref: `spec.md > Risks And Verification` and `prd.md > Edge Cases`
-  What to build: Implement precise retry semantics, truthful failures, start-over confirmation, responsive/focus states, disagreement treatment, privacy copy, safe correlation IDs, and judge-facing clarity. Conduct one unaided test with a person who has not built the app and fix all severity-1 blockers.
+  What to build: Implement precise retry semantics, truthful failures, start-over confirmation, responsive/focus states, disagreement treatment, privacy copy, safe correlation IDs, and judge-facing clarity. With permitted Google coding tooling, add a robust TypeScript Playwright suite configured with exactly one worker. Conduct one unaided test with a person who has not built the app and fix all severity-1 blockers.
   Acceptance: Every PRD edge case has explicit behavior; keyboard/mobile use is practical; failures never imply safety; the user completes the golden path in under two minutes without coaching; and Gemini, ADK, Parallel, uncertainty, and human responsibility are evident without developer tools.
-  Verify: Run all test suites and the full edge-case table, repeat accessibility checks, record fresh-user completion time/confusion/keyboard/mobile failures and fixes, scan full Git history, container layers, Cloud Build output, and local logs for secrets, run `git diff --check`, then commit.
+  Verify: Run all test suites and the full edge-case table; run the TypeScript Playwright suite with exactly one worker across the golden path, truthful failures, keyboard navigation, ~390 px mobile layout, and accessibility basics; record fresh-user completion time/confusion/keyboard/mobile failures and fixes; scan full Git history, container layers, Cloud Build output, and local logs for secrets; run `git diff --check`; then commit.
 
 - [ ] **11. Provision, deploy, and smoke-test the frugal public MVP (1.5 h) — visual pause 3**
   Spec ref: `spec.md > Architecture > Google Cloud Boundary` and `spec.md > External APIs And Dependencies > Cloud Run Identity`
   What to build: Provision dedicated least-privilege service accounts/IAM, private bucket, Secret Manager injection, request timeouts, Artifact Registry, private agent Cloud Run service, and public web Cloud Run service. Every command must include the literal ClearCut project and verified project number. Implement `deploy/smoke-test.ps1`, identity-token web→agent calls, and deployed stream flushing; set minimum instances 0 and maximum 1.
   Acceptance: The hosted app is anonymous; direct agent access returns 401/403; web→agent succeeds; storage is non-public; the browser sees no agent URL/token/key; MP4 range seeking works; deployed streaming is incremental; two clean-session golden paths complete under two minutes; and COR is untouched.
-  Verify: Inspect IAM/scaling/timeouts/secrets/bucket policy, run signed-out public checks and `deploy/smoke-test.ps1`, test MP4 range requests, agent denial, authenticated service call, stream flushing, browser traffic, Cloud Run/Cloud Build logs and image layers, and two clean golden paths; show Jose Luis the deployed MVP, update README only with verified facts, then commit.
+  Verify: Inspect IAM/scaling/timeouts/secrets/bucket policy, run signed-out public checks and `deploy/smoke-test.ps1`, run the TypeScript Playwright deployed smoke suite with exactly one worker, test MP4 range requests, agent denial, authenticated service call, stream flushing, browser traffic, Cloud Run/Cloud Build logs and image layers, and two clean golden paths; show Jose Luis the deployed MVP, update README only with verified facts, then commit.
 
 - [ ] **12. Prepare the submission package and Devpost handoff (1.5 h)**
   Spec ref: `spec.md > Demo And Submission Flow` and `prd.md > Submission Proof Points`
   What to build: Select 3–5 screenshots, finalize the story and measured impact, record/caption a ≤3-minute YouTube demo, and assemble runtime/provenance/testing proof. The recording must show text-only evidence inside ClearCut and must not open external source pages that may expose third-party branding. After an action-time approval, update YouTube and the Devpost draft; never submit without the separate required final confirmation.
   Acceptance: Stage One deliverables and all four equal-weight Stage Two criteria have visible proof; the recorded golden path uses live Gemini and live Parallel rather than fixtures; repository/app/video/Devpost tell the same story; public repo displays Apache-2.0 in GitHub About; and no prohibited third-party creative element is shown.
   Verify: Confirm canonical/mirror checklist SHA-256 match, run the final submission checklist, inspect repo/license/app/video/captions/source links signed out, verify live-call evidence and asset provenance, confirm video duration and no external-page footage, verify Devpost remains unsubmitted, confirm next command is `$prepare-submission`, and create the final pre-submission commit.
-

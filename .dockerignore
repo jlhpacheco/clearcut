@@ -1,0 +1,16 @@
+.git
+.gitignore
+.dockerignore
+**/bin/
+**/obj/
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/env/
+*.user
+*.suo
+.vs/
+.vscode/
+.env
+.env.*
