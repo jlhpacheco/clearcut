@@ -338,7 +338,7 @@ The public demonstration should take approximately 100–120 seconds:
 3. Select **Analyze with Gemini** and show the three timestamped findings.
 4. Select the factual-claim finding and jump to its exact moment.
 5. Select **Research with Parallel** and keep the visible agent stages on screen.
-6. Open one real source card in a new tab, then return without losing state.
+6. Show one real source card as text inside ClearCut; verify the external link off-camera so the recording does not expose third-party branding or copyrighted page elements.
 7. Apply human dispositions to all three findings.
 8. Show the completed checklist and printable report.
 9. End on a compact architecture/proof screen naming Gemini, ADK, Parallel, and Cloud Run.
@@ -368,4 +368,3 @@ PARALLEL_API_KEY=<secret-manager-injected>
 ```
 
 `deploy.ps1` must refuse to run unless `GOOGLE_CLOUD_PROJECT` exactly equals `clearcut-agentic-20260901`. This guard protects the unrelated COR project.
-

@@ -47,6 +47,8 @@ Detailed user behavior and testable acceptance criteria are defined in [docs/PRD
 
 The implementation-ready stack, service boundaries, file structure, data flow, AI contracts, risks, and verification gates are defined in [docs/SPEC.md](docs/SPEC.md).
 
+The sequenced autonomous implementation and verification plan is tracked in [docs/BUILD_CHECKLIST.md](docs/BUILD_CHECKLIST.md).
+
 ## Judging evidence
 
 We track the official Stage One gate and all four equal-weight Stage Two criteria without claiming unfinished work. See [docs/JUDGING.md](docs/JUDGING.md) and [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md).
