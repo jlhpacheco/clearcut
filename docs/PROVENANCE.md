@@ -46,6 +46,7 @@ A file cannot enter the final repository, hosted build, demo video, or Devpost m
 
 ## Repair run record
 
+### Repair Pass 1 (Foundation Repair Pass)
 | Field | Evidence |
 |---|---|
 | Tool | Gemini CLI 0.58.0 |
@@ -53,8 +54,20 @@ A file cannot enter the final repository, hosted build, demo video, or Devpost m
 | Date | 2026-09-02 America/Los_Angeles |
 | Prompt file | `docs/GEMINI_FOUNDATION_REPAIR_PROMPT.md` |
 | Input | Repository input only |
-| Files created/changed | `.gitignore`, `.dockerignore`, `agent/.env.example`, `agent/app/__init__.py`, `agent/app/settings.py`, `agent/app/contracts.py`, `agent/app/video_analysis.py`, `agent/app/parallel_search.py`, `agent/app/agent.py`, `agent/app/api.py`, `agent/tests/test_parallel_normalization.py`, `agent/tests/test_research_events.py`, `docs/PROVENANCE.md` |
-| Verification status | Unit tests passed. SHA-256 hashes marked as pending until final verification. |
+| Files created/changed | `.gitignore`, `.dockerignore`, `agent/.env.example`, `agent/app/__init__.py`, `agent/app/settings.py`, `agent/app/contracts.py`, `agent/app/video_analysis.py`, `agent/app/parallel_search.py`, `agent/app/agent.py`, `agent/app/api.py`, `agent/tests/test_parallel_normalization.py`, `agent/tests/test_research_events.py` |
+| Verification status | Backend unit and contract tests passed. Hashes pending verification. |
+
+### Repair Pass 2 (Visual Corrective Pass)
+| Field | Evidence |
+|---|---|
+| Tool | Gemini CLI 0.58.0 |
+| Model | `gemini-3.5-flash` |
+| Date | 2026-09-02 America/Los_Angeles |
+| Prompt file | `docs/GEMINI_FOUNDATION_REPAIR_2_PROMPT.md` |
+| Input | Repository input only |
+| Files created/changed | `src/ClearCut.Web/Components/Pages/Review.razor`, `src/ClearCut.Web/Components/Review/FindingCard.razor`, `src/ClearCut.Web/Components/Review/ResearchTimeline.razor`, `src/ClearCut.Web/wwwroot/app.css`, `THIRD_PARTY_NOTICES.md`, `docs/PROVENANCE.md` |
+| Verification status | All Blazor / C# and Python tests passed. Hashes pending verification. |
+| Logo Provenance | Preserved logo provenance (`assets/brand/clearcut-logo.png`). Identical copy deployed at `src/ClearCut.Web/wwwroot/assets/brand/clearcut-logo.png`. |
 
 ## Final review
 

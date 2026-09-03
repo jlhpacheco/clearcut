@@ -112,7 +112,7 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Custom Accessibility Focus Rings */
-.btn:focus, a:focus, .cinematic-card:focus-within, select:focus, textarea:focus {
+.btn:focus, a:focus, .cinematic-card:focus-within, select:focus, textarea:focus, button.timeline-marker:focus-visible {
     outline: 2px solid var(--teal-primary) !important;
     outline-offset: 2px;
     box-shadow: none !important;
@@ -272,6 +272,24 @@ h1, h2, h3, h4, h5 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+button.timeline-marker {
+    padding: 0;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border-style: solid;
+}
+
+.scene-label {
+    color: var(--teal-primary);
+    background-color: var(--teal-glow);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
 .brand-marker { background-color: var(--priority-attention); }
 .claim-marker { background-color: var(--priority-check); }
 .music-marker { background-color: #3B82F6; }
@@ -413,6 +431,56 @@ h1, h2, h3, h4, h5 {
     to { transform: rotate(360deg); }
 }
 
+/* Compact Five-Step Workflow on Home Screen */
+.workflow-compact-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.workflow-compact-step {
+    flex: 1;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.5rem;
+    text-align: center;
+    position: relative;
+    transition: border-color 0.2s ease;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.workflow-compact-step:hover {
+    border-color: rgba(20, 184, 166, 0.3);
+}
+
+.workflow-compact-step-num {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--teal-primary);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    letter-spacing: 0.05em;
+}
+
+.workflow-compact-step-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.workflow-compact-step-desc {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    line-height: 1.2;
+}
+
 /* Responsive constraints at around 390px mobile and 1280x720 layout */
 @media (max-width: 992px) {
     .screening-layout {
@@ -432,6 +500,16 @@ h1, h2, h3, h4, h5 {
     }
     .brand-text {
         font-size: 1.2rem;
+    }
+    .workflow-compact-container {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+    .workflow-compact-step-title,
+    .workflow-compact-step-desc {
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 }
 
@@ -544,4 +622,25 @@ h1, h2, h3, h4, h5 {
 
 .print-only {
     display: none;
+}
+
+/* Accessibility Enhancement: 44px mobile tap targets for critical interactive controls */
+.disposition-btn,
+.btn-cinematic,
+.btn-secondary-cinematic {
+    min-height: 44px;
+}
+
+/* Accessibility Enhancement: prefers-reduced-motion media query to disable transitions and animations */
+@media (prefers-reduced-motion: reduce) {
+    .cinematic-card,
+    .workflow-compact-step,
+    .spinner-teal,
+    .btn-cinematic,
+    .btn-secondary-cinematic,
+    .disposition-btn,
+    button.timeline-marker {
+        transition: none !important;
+        animation: none !important;
+    }
 }

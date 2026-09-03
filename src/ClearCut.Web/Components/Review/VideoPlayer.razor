@@ -15,9 +15,9 @@
         <div class="timeline-visual mt-4 w-100">
             <div class="timeline-bar">
                 <div class="timeline-progress" style="width: @GetProgressPercentage()%;"></div>
-                <div class="timeline-marker brand-marker" style="left: 11.8%;" title="LumaLeaf Logo (4.5s)" @onclick="(() => SeekToAsync(4.5))"></div>
-                <div class="timeline-marker claim-marker" style="left: 39.4%;" title="76% Claim (15.0s)" @onclick="(() => SeekToAsync(15.0))"></div>
-                <div class="timeline-marker music-marker" style="left: 65.7%;" title="Ambient Synth (25.0s)" @onclick="(() => SeekToAsync(25.0))"></div>
+                <button type="button" class="timeline-marker brand-marker" style="left: 11.8%;" title="LumaLeaf Logo (4.5s)" @onclick="(() => SeekToAsync(4.5))" aria-label="Seek to fictional brand finding at 4.5 seconds"></button>
+                <button type="button" class="timeline-marker claim-marker" style="left: 39.4%;" title="76% Claim (15.0s)" @onclick="(() => SeekToAsync(15.0))" aria-label="Seek to factual claim finding at 15 seconds"></button>
+                <button type="button" class="timeline-marker music-marker" style="left: 65.7%;" title="Ambient Synth (25.0s)" @onclick="(() => SeekToAsync(25.0))" aria-label="Seek to original music cue finding at 25 seconds"></button>
             </div>
             <div class="d-flex justify-content-between text-secondary small mt-1" style="font-size: 0.75rem;">
                 <span>0.0s</span>

@@ -1,6 +1,9 @@
-<div class="mb-4">
+<div class="mb-4" data-testid="research-timeline">
     <div class="d-flex justify-content-between align-items-center mb-1">
         <span class="small text-secondary font-weight-bold uppercase" style="letter-spacing: 0.05em;">Agent Research Timeline</span>
+        <div aria-live="polite" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+            Research status: @GetResearchStatusAnnouncement()
+        </div>
         @if (IsRunning)
         {
             <div class="d-flex align-items-center gap-2">
@@ -50,6 +53,20 @@
     [Parameter] public string? ResearchTask { get; set; }
 
     private bool IsRunning => Status == "preparing" || Status == "searching" || Status == "reviewing";
+
+    private string GetResearchStatusAnnouncement()
+    {
+        return Status switch
+        {
+            "pending" => "Not researched yet.",
+            "preparing" => "Agent is preparing research queries.",
+            "searching" => "Agent is searching with Parallel Search.",
+            "reviewing" => "Agent is reviewing retrieved source documents.",
+            "ready" => "Evidence is ready. Citations have been compiled.",
+            "incomplete" => "Agent search is incomplete.",
+            _ => $"Current status: {Status}"
+        };
+    }
 
     private string GetStepClass(string stepName)
     {
