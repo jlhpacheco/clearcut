@@ -1,0 +1,14 @@
+{
+  "name": "clearcut-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test --workers=1",
+    "test:e2e:headed": "playwright test --workers=1 --headed"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.62.1",
+    "typescript": "7.0.2"
+  }
+}

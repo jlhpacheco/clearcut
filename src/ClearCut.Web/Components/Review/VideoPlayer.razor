@@ -5,9 +5,9 @@
     <div class="cinematic-placeholder-screen d-flex flex-column justify-content-center align-items-center p-4">
         <div class="monitor-signal text-uppercase">● Screening Monitor — Input Active</div>
         <div class="fictional-media-indicator">FICTIONAL DEMO — NOT LEGAL ADVICE</div>
-        <div class="timecode">@FormattedTime</div>
+        <div class="timecode" data-testid="clip-time">@FormattedTime</div>
         
-        <div class="current-scene-description mt-3 text-center">
+        <div class="current-scene-description mt-3 text-center" data-testid="clip-scene">
             @GetSceneDescription()
         </div>
         
@@ -15,9 +15,9 @@
         <div class="timeline-visual mt-4 w-100">
             <div class="timeline-bar">
                 <div class="timeline-progress" style="width: @GetProgressPercentage()%;"></div>
-                <button type="button" class="timeline-marker brand-marker" style="left: 11.8%;" title="LumaLeaf Logo (4.5s)" @onclick="(() => SeekToAsync(4.5))" aria-label="Seek to fictional brand finding at 4.5 seconds"></button>
-                <button type="button" class="timeline-marker claim-marker" style="left: 39.4%;" title="76% Claim (15.0s)" @onclick="(() => SeekToAsync(15.0))" aria-label="Seek to factual claim finding at 15 seconds"></button>
-                <button type="button" class="timeline-marker music-marker" style="left: 65.7%;" title="Ambient Synth (25.0s)" @onclick="(() => SeekToAsync(25.0))" aria-label="Seek to original music cue finding at 25 seconds"></button>
+                <button type="button" class="timeline-marker brand-marker" data-testid="marker-brand" style="left: 11.8%;" title="LumaLeaf Logo (4.5s)" @onclick="(() => SeekToAsync(4.5))" aria-label="Seek to fictional brand finding at 4.5 seconds"></button>
+                <button type="button" class="timeline-marker claim-marker" data-testid="marker-claim" style="left: 39.4%;" title="76% Claim (15.0s)" @onclick="(() => SeekToAsync(15.0))" aria-label="Seek to factual claim finding at 15 seconds"></button>
+                <button type="button" class="timeline-marker music-marker" data-testid="marker-music" style="left: 65.7%;" title="Ambient Synth (25.0s)" @onclick="(() => SeekToAsync(25.0))" aria-label="Seek to original music cue finding at 25 seconds"></button>
             </div>
             <div class="d-flex justify-content-between text-secondary small mt-1" style="font-size: 0.75rem;">
                 <span>0.0s</span>

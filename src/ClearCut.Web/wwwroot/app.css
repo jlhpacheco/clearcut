@@ -272,6 +272,10 @@ h1, h2, h3, h4, h5 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+.screening-layout > * {
+    min-width: 0;
+}
+
 button.timeline-marker {
     padding: 0;
     margin: 0;
@@ -297,10 +301,13 @@ button.timeline-marker {
 .video-overlay-text {
     position: absolute;
     top: 12px;
-    left: 12px;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
     background: rgba(11, 14, 20, 0.85);
     border: 1px solid var(--border-subtle);
     border-radius: 4px;
+    white-space: normal;
     padding: 4px 10px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -510,6 +517,10 @@ button.timeline-marker {
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
+    }
+    header.d-flex,
+    header.d-flex > div {
+        flex-wrap: wrap !important;
     }
 }
 

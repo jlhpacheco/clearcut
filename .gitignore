@@ -6,6 +6,13 @@
 *.userosscache
 *.sln.docstates
 
+# Playwright Output
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
 # .NET Build and Publish Artifacts
 **/bin/
 **/obj/

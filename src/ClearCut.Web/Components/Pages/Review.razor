@@ -28,7 +28,7 @@
         </div>
         @if (Store.Session.Findings.Count > 0)
         {
-            <button type="button" class="btn-secondary-cinematic py-1 px-3" style="font-size: 0.8rem;" @onclick="ConfirmStartOver">
+            <button type="button" class="btn-secondary-cinematic py-1 px-3" style="font-size: 0.8rem;" data-testid="start-over-button" @onclick="ConfirmStartOver">
                 Start Over
             </button>
         }

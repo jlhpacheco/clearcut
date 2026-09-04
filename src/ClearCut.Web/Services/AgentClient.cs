@@ -245,7 +245,7 @@ public class AgentClient
                     Publisher = "clearcut.web",
                     RetrievalDate = todayStr,
                     RelevanceSummary = "Fixture demonstration—no search executed. Contains the unique verification token CC-EVID-9F4D. This is an explicitly fictional token and claim for demonstration purposes.",
-                    Url = "http://localhost:5000/evidence/lumaleaf-energy-study"
+                    Url = "/evidence/lumaleaf-energy-study"
                 }
             },
             "find-03-music" => new List<EvidenceSource>

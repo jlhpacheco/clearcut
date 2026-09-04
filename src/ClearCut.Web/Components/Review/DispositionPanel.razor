@@ -5,12 +5,22 @@
         @foreach (Disposition disp in Enum.GetValues<Disposition>())
         {
             var isSelected = SelectedDisposition == disp;
+            var isPendingDismiss = _isPendingDismiss && disp == Disposition.Dismiss;
+            var isButtonActive = isSelected || isPendingDismiss;
             var isDismiss = disp == Disposition.Dismiss;
             var isAllowed = !isDismiss || CanDismiss;
+            var testId = disp switch {
+                Disposition.Investigate => "disposition-investigate",
+                Disposition.Replace => "disposition-replace",
+                Disposition.License => "disposition-license",
+                Disposition.Dismiss => "disposition-dismiss",
+                _ => ""
+            };
 
             <button type="button" 
-                    class="disposition-btn @(isSelected ? "selected" : "")" 
+                    class="disposition-btn @(isButtonActive ? "selected" : "")"
                     disabled="@(!isAllowed)"
+                    data-testid="@testId"
                     title="@disp.GetDescription()"
                     @onclick="(() => HandleSelectDisposition(disp))">
                 @disp.ToString()
@@ -18,13 +28,14 @@
         }
     </div>
 
-    @if (SelectedDisposition == Disposition.Dismiss)
+    @if (SelectedDisposition == Disposition.Dismiss || _isPendingDismiss)
     {
         <div class="p-3 rounded mb-3 border" style="background-color: rgba(20, 184, 166, 0.05); border-color: var(--teal-primary) !important;">
             <div class="form-check d-flex align-items-center gap-2">
                 <input class="form-check-input darker-border-checkbox" 
                        type="checkbox" 
                        id="dismissConfirmCheckbox" 
+                       data-testid="dismiss-confirm"
                        checked="@_hasDismissConfirmation"
                        @onchange="HandleDismissConfirmChanged" />
                 <label class="form-check-label small text-white" for="dismissConfirmCheckbox" style="cursor: pointer; font-weight: 500;">
@@ -45,6 +56,7 @@
         <label for="reviewerNoteInput" class="small text-secondary font-weight-bold mb-1 uppercase" style="letter-spacing: 0.03em;">Reviewer Notes (Optional)</label>
         <textarea id="reviewerNoteInput" 
                   class="form-input-cinematic" 
+                  data-testid="reviewer-note"
                   rows="3" 
                   placeholder="Record evidence analysis, follow-up actions, or professional citations..."
                   value="@ReviewerNote"
@@ -61,13 +73,21 @@
     [Parameter] public EventCallback<string> OnNoteChanged { get; set; }
 
     private bool _hasDismissConfirmation;
+    private bool _isPendingDismiss;
+    private string _lastFindingId = string.Empty;
 
     protected override void OnParametersSet()
     {
-        // Reset local confirmation check when finding ID changes or disposition changes away from Dismiss
-        if (SelectedDisposition != Disposition.Dismiss)
+        if (_lastFindingId != FindingId)
+        {
+            _lastFindingId = FindingId;
+            _hasDismissConfirmation = false;
+            _isPendingDismiss = false;
+        }
+        else if (SelectedDisposition != Disposition.Dismiss)
         {
             _hasDismissConfirmation = false;
+            _isPendingDismiss = false;
         }
     }
 
@@ -76,13 +96,17 @@
         if (disposition == Disposition.Dismiss)
         {
             if (!CanDismiss) return;
-            // Select but wait for confirmation before fully saving
             _hasDismissConfirmation = false;
-            await OnDispositionChanged.InvokeAsync(disposition);
+            _isPendingDismiss = true;
+            if (SelectedDisposition == Disposition.Dismiss)
+            {
+                await OnDispositionChanged.InvokeAsync(null);
+            }
         }
         else
         {
             _hasDismissConfirmation = false;
+            _isPendingDismiss = false;
             await OnDispositionChanged.InvokeAsync(disposition);
         }
     }
@@ -92,12 +116,12 @@
         _hasDismissConfirmation = e.Value is bool b && b;
         if (!_hasDismissConfirmation)
         {
-            // If unchecked, reset the disposition back to null (pending)
+            _isPendingDismiss = true;
             await OnDispositionChanged.InvokeAsync(null);
         }
         else
         {
-            // If checked, keep or re-apply Dismiss
+            _isPendingDismiss = false;
             await OnDispositionChanged.InvokeAsync(Disposition.Dismiss);
         }
     }

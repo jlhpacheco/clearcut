@@ -82,6 +82,17 @@ A file cannot enter the final repository, hosted build, demo video, or Devpost m
 | Files created/changed | Key directories/files: `agent/app/` (agent, api, parallel_search, video_analysis, settings, contracts), `agent/tests/` (unit and contract tests), `src/ClearCut.Web/` (AgentClient, session state, UI trace views), `deploy/` (agent.Dockerfile, web.Dockerfile, manifests), `agent/requirements.lock`, and `agent/requirements-test.lock`. |
 | Hashes | Pending final release artifact freeze. |
 
+### Repair Pass 4 (Playwright and UI Checkpoint)
+| Field | Evidence |
+|---|---|
+| Tool | Authenticated Gemini Generative Language API patch workflow in Google Cloud project `clearcut-agentic-20260901` |
+| Model | `gemini-3.5-flash` (Codex only inspected, tested, reviewed drafts, and mechanically applied accepted Gemini-produced diffs) |
+| Date | 2026-09-04 America/Los_Angeles |
+| Scope | Playwright/TypeScript setup, stable data-testid hooks, responsive CSS, relative fixture evidence URL, Dismiss confirmation behavior, accessible checklist table region, and the retrying assertion that removed an asynchronous print test race. |
+| Verification status | Verification results on 2026-09-04: npm dependency audit: 0 vulnerabilities; Playwright Chromium: 10/10 passed, one worker, fullyParallel false, 38.1 seconds on final full rerun; Targeted repaired export/print test: 1/1 passed; .NET Release suite: 24/24 passed; Locked Python agent Docker suite: 19/19 passed (one upstream ADK deprecation warning); Web Docker image clearcut-web-playwright-check built successfully. Generated test artifacts and node_modules are excluded by .gitignore. |
+| Files created/changed | Playwright/TypeScript configuration, UI components, CSS files, and test suites. |
+| Hashes | Pending final release artifact freeze. |
+
 ## Final review
 
 - [ ] Every submitted implementation and creative asset has a complete provenance entry.
