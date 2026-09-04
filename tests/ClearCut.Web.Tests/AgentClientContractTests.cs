@@ -273,6 +273,178 @@ public class AgentClientContractTests
         Assert.Equal("incomplete", events[0].Status);
     }
 
+    [Fact]
+    public async Task LiveRequests_AttachIdToken_WhenEnabled()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "false" },
+                { "CLEARCUT_AGENT_USE_ID_TOKEN", "true" },
+                { "CLEARCUT_AGENT_BASE_URL", "https://private-agent-service-root.run.app" }
+            })
+            .Build();
+
+        var mockTokenProvider = new MockIdentityTokenProvider("mock-secret-id-token");
+        HttpRequestMessage? capturedAnalyzeRequest = null;
+        HttpRequestMessage? capturedResearchRequest = null;
+
+        var mockHandler = new MockHttpMessageHandler(async req =>
+        {
+            if (req.RequestUri?.AbsolutePath.Contains("analyze") == true)
+            {
+                capturedAnalyzeRequest = req;
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"findings\":[]}", System.Text.Encoding.UTF8, "application/json")
+                };
+            }
+            else
+            {
+                capturedResearchRequest = req;
+                var ndjson = "{\"status\":\"ready\",\"evidence\":[{\"title\":\"T\",\"publisher\":\"P\",\"retrieval_date\":\"D\",\"relevance_summary\":\"S\",\"url\":\"http://u\"}]}\n";
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(ndjson, System.Text.Encoding.UTF8, "application/x-ndjson")
+                };
+            }
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config, mockTokenProvider);
+
+        await client.AnalyzeAsync();
+        var finding = new ReviewFinding { FindingId = "f", Label = "L", Observation = "O", ResearchObjective = "Obj" };
+        await foreach (var ev in client.ResearchStreamAsync(finding)) { }
+
+        Assert.NotNull(capturedAnalyzeRequest);
+        Assert.Equal("Bearer", capturedAnalyzeRequest.Headers.Authorization?.Scheme);
+        Assert.Equal("mock-secret-id-token", capturedAnalyzeRequest.Headers.Authorization?.Parameter);
+        Assert.Equal("https://private-agent-service-root.run.app", mockTokenProvider.CapturedAudience);
+
+        Assert.NotNull(capturedResearchRequest);
+        Assert.Equal("Bearer", capturedResearchRequest.Headers.Authorization?.Scheme);
+        Assert.Equal("mock-secret-id-token", capturedResearchRequest.Headers.Authorization?.Parameter);
+    }
+
+    [Fact]
+    public async Task LiveRequests_DoNotAttachIdToken_WhenDisabled()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "false" },
+                { "CLEARCUT_AGENT_USE_ID_TOKEN", "false" },
+                { "CLEARCUT_AGENT_BASE_URL", "https://private-agent-service-root.run.app" }
+            })
+            .Build();
+
+        HttpRequestMessage? capturedRequest = null;
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            capturedRequest = req;
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"findings\":[]}", System.Text.Encoding.UTF8, "application/json")
+            });
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        await client.AnalyzeAsync();
+
+        Assert.NotNull(capturedRequest);
+        Assert.Null(capturedRequest.Headers.Authorization);
+    }
+
+    [Fact]
+    public async Task IsHealthyAsync_FixtureMode_ReturnsTrueWithoutNetwork()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "true" }
+            })
+            .Build();
+
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            throw new System.Exception("Should not be called in fixture mode");
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        var result = await client.IsHealthyAsync();
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsHealthyAsync_LiveMode_AttachesBearerTokenAndReturnsTrueOnSuccess()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "false" },
+                { "CLEARCUT_AGENT_USE_ID_TOKEN", "true" },
+                { "CLEARCUT_AGENT_BASE_URL", "https://private-agent-service-root.run.app" }
+            })
+            .Build();
+
+        var mockTokenProvider = new MockIdentityTokenProvider("mock-secret-id-token");
+        HttpRequestMessage? capturedRequest = null;
+
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            capturedRequest = req;
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config, mockTokenProvider);
+        var result = await client.IsHealthyAsync();
+
+        Assert.True(result);
+        Assert.NotNull(capturedRequest);
+        Assert.Equal("https://private-agent-service-root.run.app/health", capturedRequest.RequestUri?.ToString());
+        Assert.Equal("Bearer", capturedRequest.Headers.Authorization?.Scheme);
+        Assert.Equal("mock-secret-id-token", capturedRequest.Headers.Authorization?.Parameter);
+        Assert.Equal("https://private-agent-service-root.run.app", mockTokenProvider.CapturedAudience);
+    }
+
+    [Theory]
+    [InlineData(System.Net.HttpStatusCode.InternalServerError)]
+    [InlineData(System.Net.HttpStatusCode.NotFound)]
+    public async Task IsHealthyAsync_LiveMode_NonSuccessReturnsFalse(System.Net.HttpStatusCode statusCode)
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "false" },
+                { "CLEARCUT_AGENT_BASE_URL", "https://private-agent-service-root.run.app" }
+            })
+            .Build();
+
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            return Task.FromResult(new HttpResponseMessage(statusCode));
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        var result = await client.IsHealthyAsync();
+
+        Assert.False(result);
+    }
+
+    private class MockIdentityTokenProvider : IIdentityTokenProvider
+    {
+        private readonly string _tokenToReturn;
+        public string? CapturedAudience { get; private set; }
+
+        public MockIdentityTokenProvider(string tokenToReturn) => _tokenToReturn = tokenToReturn;
+
+        public Task<string> GetIdentityTokenAsync(string audience)
+        {
+            CapturedAudience = audience;
+            return Task.FromResult(_tokenToReturn);
+        }
+    }
+
     private class MockHttpMessageHandler : HttpMessageHandler
     {
         private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _handler;

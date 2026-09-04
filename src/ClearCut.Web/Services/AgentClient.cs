@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ClearCut.Web.Models;
@@ -13,15 +14,49 @@ public class AgentClient
     private readonly bool _useFixtures;
     private readonly string _agentBaseUrl;
     private readonly string _sessionId = Guid.NewGuid().ToString();
+    private readonly IIdentityTokenProvider? _tokenProvider;
+    private readonly bool _useIdToken;
 
     private static readonly HashSet<string> AllowedStatuses = new() { "preparing", "searching", "reviewing", "ready", "incomplete" };
 
     public AgentClient(HttpClient httpClient, IConfiguration configuration)
+        : this(httpClient, configuration, null)
+    {
+    }
+
+    public AgentClient(HttpClient httpClient, IConfiguration configuration, IIdentityTokenProvider? tokenProvider)
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _useFixtures = _configuration.GetValue<bool>("UseFixtures", true);
+        _useFixtures = _configuration.GetValue<bool>("UseFixtures", false);
+        _useIdToken = _configuration.GetValue<bool>("CLEARCUT_AGENT_USE_ID_TOKEN", false);
+        _tokenProvider = tokenProvider;
         _agentBaseUrl = _configuration["CLEARCUT_AGENT_BASE_URL"] ?? "http://localhost:8000";
+    }
+
+    public async Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
+    {
+        if (_useFixtures)
+        {
+            return true;
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_agentBaseUrl}/health");
+            await ApplyAuthHeaderAsync(request);
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+        catch (TaskCanceledException)
+        {
+            return false;
+        }
     }
 
     public async Task<AnalysisResponse> AnalyzeAsync(CancellationToken cancellationToken = default)
@@ -33,7 +68,14 @@ public class AgentClient
             return GetFixtureAnalysisResponse();
         }
 
-        var response = await _httpClient.PostAsJsonAsync($"{_agentBaseUrl}/v1/analyze", new { }, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_agentBaseUrl}/v1/analyze")
+        {
+            Content = JsonContent.Create(new { })
+        };
+
+        await ApplyAuthHeaderAsync(request);
+
+        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return JsonSerializer.Deserialize<AnalysisResponse>(content) ?? throw new InvalidOperationException("Analysis response was null.");
@@ -106,10 +148,17 @@ public class AgentClient
             session_id = _sessionId
         };
 
-        var response = await _httpClient.PostAsJsonAsync($"{_agentBaseUrl}/v1/research/stream", requestBody, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_agentBaseUrl}/v1/research/stream")
+        {
+            Content = JsonContent.Create(requestBody)
+        };
+
+        await ApplyAuthHeaderAsync(request);
+
+        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
 
         bool receivedTerminal = false;
@@ -168,6 +217,21 @@ public class AgentClient
         {
             yield return new ResearchEvent { Status = "incomplete", Error = "Stream ended prematurely without a terminal event." };
         }
+    }
+
+    private async Task ApplyAuthHeaderAsync(HttpRequestMessage request)
+    {
+        if (!_useIdToken) return;
+        if (_tokenProvider == null)
+        {
+            throw new InvalidOperationException("Identity token provider is required when CLEARCUT_AGENT_USE_ID_TOKEN is enabled.");
+        }
+
+        var uri = new Uri(_agentBaseUrl);
+        var audience = $"{uri.Scheme}://{uri.Authority}";
+
+        var token = await _tokenProvider.GetIdentityTokenAsync(audience);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
     private static AnalysisResponse GetFixtureAnalysisResponse()

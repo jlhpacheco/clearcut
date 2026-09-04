@@ -93,6 +93,19 @@ A file cannot enter the final repository, hosted build, demo video, or Devpost m
 | Files created/changed | Playwright/TypeScript configuration, UI components, CSS files, and test suites. |
 | Hashes | Pending final release artifact freeze. |
 
+### Repair Pass 5 (Cloud Run Runtime Hardening)
+
+| Field | Evidence |
+| :--- | :--- |
+| **Tool** | Authenticated Gemini Generative Language API patch workflow in Google Cloud project `clearcut-agentic-20260901`. |
+| **Model** | `gemini-3.5-flash`. Codex inspected, tested, reviewed, rejected flawed drafts, and mechanically applied accepted Gemini diffs. |
+| **Date** | 2026-09-04 America/Los_Angeles. |
+| **Scope** | Google.Apis.Auth 1.73.0 OIDC service-to-service token provider; authenticated web-to-private-agent analyze/research/health calls; production startup fixture/URL/auth guards; generic health endpoints; Cloud Run stream anti-buffering headers; production-safe agent Docker defaults; exact-project read-only deployment preflight; safe environment template and deployment notes. |
+| **Verification** | 30/30 .NET tests; 19/19 locked Python agent tests with one upstream ADK deprecation warning; 10/10 Chromium Playwright tests with one worker; both Docker images built; both production containers fail closed when secure configuration/secret injection is absent; wrong-project preflight rejected before gcloud; exact-project preflight reaches only the expected missing-media 404; current-tree secret scan and git diff check passed. |
+| **Cloud State** | Dedicated bucket now has uniform bucket-level access and public-access-prevention enforced. No Cloud Run service, Artifact Registry repository, or paid Cloud Build was created because `clearcut-demo.mp4` is missing. |
+| **Files Changed** | `.env.example`; `agent/app/api.py`; `deploy/agent.Dockerfile`; `deploy/preflight.ps1`; `deploy/README.md`; `src/ClearCut.Web/ClearCut.Web.csproj`; `src/ClearCut.Web/Program.cs`; `src/ClearCut.Web/Services/AgentClient.cs`; `src/ClearCut.Web/Services/GoogleIdentityTokenProvider.cs`; `src/ClearCut.Web/Services/IIdentityTokenProvider.cs`; `src/ClearCut.Web/appsettings.json`; `tests/ClearCut.Web.Tests/AgentClientContractTests.cs` |
+| **Hashes** | Pending final release artifact freeze. |
+
 ## Final review
 
 - [ ] Every submitted implementation and creative asset has a complete provenance entry.

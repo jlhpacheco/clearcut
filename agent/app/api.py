@@ -122,7 +122,12 @@ async def generate_research_events(req: ResearchRequest):
 @app.post("/v1/research/stream")
 async def research_stream(req: ResearchRequest):
     settings.validate()
+    headers = {
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no"
+    }
     return StreamingResponse(
         generate_research_events(req),
-        media_type="application/x-ndjson"
+        media_type="application/x-ndjson",
+        headers=headers
     )

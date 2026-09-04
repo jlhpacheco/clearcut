@@ -24,8 +24,6 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY agent/app/ ./app/
 COPY contracts/ ./contracts/
-ENV PORT=8000
+ENV PORT=8000 ENVIRONMENT=production USE_FIXTURES=False
 EXPOSE 8000
-ENV ENVIRONMENT=development
-ENV USE_FIXTURES=True
 CMD ["sh", "-c", "uvicorn app.api:app --host 0.0.0.0 --port ${PORT}"]
