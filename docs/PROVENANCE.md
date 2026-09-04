@@ -69,6 +69,19 @@ A file cannot enter the final repository, hosted build, demo video, or Devpost m
 | Verification status | All Blazor / C# and Python tests passed. Hashes pending verification. |
 | Logo Provenance | Preserved logo provenance (`assets/brand/clearcut-logo.png`). Identical copy deployed at `src/ClearCut.Web/wwwroot/assets/brand/clearcut-logo.png`. |
 
+### Repair Pass 3 (Live ADK and Parallel Integration)
+| Field | Evidence |
+|---|---|
+| Tool | Authenticated Gemini Generative Language API patch workflow in Google Cloud project `clearcut-agentic-20260901` |
+| Model | `gemini-3.5-flash` (Codex only inspected, tested, reviewed drafts, and mechanically applied accepted Gemini-produced diffs) |
+| Date | 2026-09-04 America/Los_Angeles |
+| Scope | Python FastAPI agent, Google ADK orchestration, Gemini video-analysis path, Parallel Search adapter, C# AgentClient/session/UI trace proof, configs/manifests, dependency lock files, Docker agent build, and offline unit/contract tests. |
+| Live sanitized proof | Objective compared official DOE information on LED vs incandescent energy use for the fictional `LumaLeaf 76 percent efficiency` statement; 3 queries; exactly one Parallel call; search_id `search_125e49bc4c3b6f3ea020c62e2cad7ade`; session_id `cc-live-smoke-8d7bed48b523`; retrieval time `2026-09-04T20:02:50.636162+00:00`; 3 cited sources from energy.gov and energystar.gov. No credentials or raw provider bodies retained. |
+| Verification status | Locked Python 3.12 Docker tester 19 passed with one upstream ADK deprecation warning; .NET 10 suite 24 passed; clean agent runtime Docker build; clean web Docker build; dependency base digest recorded in deploy/agent.Dockerfile. |
+| Security/correctness gates | Exactly one call/no retry, 1-3 queries, max 3 evidence items and 3600 chars, request/result session binding, untrusted-data delimiters, zero evidence fails closed, malformed/null/unknown/premature streams fail closed, fixture wording states no search executed, live trace metadata shown in UI. |
+| Files created/changed | Key directories/files: `agent/app/` (agent, api, parallel_search, video_analysis, settings, contracts), `agent/tests/` (unit and contract tests), `src/ClearCut.Web/` (AgentClient, session state, UI trace views), `deploy/` (agent.Dockerfile, web.Dockerfile, manifests), `agent/requirements.lock`, and `agent/requirements-test.lock`. |
+| Hashes | Pending final release artifact freeze. |
+
 ## Final review
 
 - [ ] Every submitted implementation and creative asset has a complete provenance entry.

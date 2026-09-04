@@ -2,6 +2,10 @@ using Xunit;
 using ClearCut.Web.Models;
 using ClearCut.Web.Services;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ClearCut.Web.Tests;
 
@@ -91,6 +95,7 @@ public class ReviewSessionStoreTests
         _store.Session.Findings.Add(new ReviewFinding { FindingId = "test" });
         _store.Session.Dispositions["test"] = Disposition.Investigate;
         _store.Session.ReviewerNotes["test"] = "some note";
+        _store.Session.ResearchTraces["test"] = new ResearchTrace { FindingId = "test" };
 
         // Act
         _store.Reset();
@@ -99,6 +104,199 @@ public class ReviewSessionStoreTests
         Assert.Empty(_store.Session.Findings);
         Assert.Empty(_store.Session.Dispositions);
         Assert.Empty(_store.Session.ReviewerNotes);
+        Assert.Empty(_store.Session.ResearchTraces);
         Assert.False(_store.Session.IsAnalysisComplete);
+    }
+
+    [Fact]
+    public async Task BeginResearchAsync_GuardsUnknownIds()
+    {
+        // Arrange
+        await _store.BeginAnalysisAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _store.BeginResearchAsync("unknown-id"));
+    }
+
+    [Fact]
+    public async Task BeginResearchAsync_PassesCurrentFindingToAgentClient()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "false" }
+            })
+            .Build();
+
+        ReviewFinding? passedFinding = null;
+        var mockHandler = new MockHttpMessageHandler(async req =>
+        {
+            var body = await req.Content!.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(body);
+            passedFinding = new ReviewFinding
+            {
+                FindingId = doc.RootElement.GetProperty("finding_id").GetString() ?? "",
+                Label = doc.RootElement.GetProperty("label").GetString() ?? "",
+                Observation = doc.RootElement.GetProperty("observation").GetString() ?? "",
+                ResearchObjective = doc.RootElement.GetProperty("research_objective").GetString() ?? ""
+            };
+
+            var ndjson = "{\"status\":\"ready\",\"objective\":\"Verify\",\"session_id\":\"s-1\",\"search_id\":\"sh-1\",\"retrieval_time\":\"now\",\"queries\":[\"query1\"],\"evidence\":[{\"title\":\"E\"}]}\n";
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(ndjson, System.Text.Encoding.UTF8, "application/x-ndjson")
+            };
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        var store = new ReviewSessionStore(client);
+
+        var finding = new ReviewFinding
+        {
+            FindingId = "find-01-brand",
+            Label = "LumaLeaf Logo",
+            Observation = "Green stylized leaf logo",
+            ResearchObjective = "Determine if matches registered trademarks"
+        };
+        store.Session.Findings.Add(finding);
+        store.Session.IsAnalysisComplete = true;
+
+        // Act
+        await store.BeginResearchAsync("find-01-brand");
+
+        // Assert
+        Assert.NotNull(passedFinding);
+        Assert.Equal("find-01-brand", passedFinding.FindingId);
+        Assert.Equal("LumaLeaf Logo", passedFinding.Label);
+        Assert.Equal("Green stylized leaf logo", passedFinding.Observation);
+        Assert.Equal("Determine if matches registered trademarks", passedFinding.ResearchObjective);
+    }
+
+    [Fact]
+    public async Task BeginResearchAsync_PreservesTraceAndResetClearsIt()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { { "UseFixtures", "false" } })
+            .Build();
+
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            var ndjson = "{\"status\":\"ready\",\"objective\":\"Verify Objective\",\"session_id\":\"sess-999\",\"search_id\":\"search-888\",\"retrieval_time\":\"2026-09-02T12:00:00Z\",\"queries\":[\"query1\"],\"evidence\":[{\"title\":\"E\"}]}\n";
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(ndjson, System.Text.Encoding.UTF8, "application/x-ndjson")
+            });
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        var store = new ReviewSessionStore(client);
+        var finding = new ReviewFinding
+        {
+            FindingId = "find-01-brand",
+            Label = "LumaLeaf Logo",
+            Observation = "Green stylized leaf logo",
+            ResearchObjective = "Verify Objective"
+        };
+        store.Session.Findings.Add(finding);
+        store.Session.IsAnalysisComplete = true;
+
+        await store.BeginResearchAsync("find-01-brand");
+
+        Assert.True(store.Session.ResearchTraces.TryGetValue("find-01-brand", out var trace));
+        Assert.Equal("Verify Objective", trace.Objective);
+        Assert.Equal("sess-999", trace.SessionId);
+        Assert.Equal("search-888", trace.SearchId);
+        Assert.Equal("2026-09-02T12:00:00Z", trace.RetrievalTime);
+        Assert.Single(trace.Queries);
+        Assert.Equal("query1", trace.Queries[0]);
+
+        store.Reset();
+        Assert.Empty(store.Session.ResearchTraces);
+    }
+
+    [Fact]
+    public async Task BeginResearchAsync_RequiresOneToThreeNonblankQueries()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { { "UseFixtures", "false" } })
+            .Build();
+
+        var mockHandler = new MockHttpMessageHandler(req =>
+        {
+            var ndjson = "{\"status\":\"ready\",\"objective\":\"Verify Objective\",\"session_id\":\"sess-999\",\"search_id\":\"search-888\",\"retrieval_time\":\"2026-09-02T12:00:00Z\",\"queries\":[\" \", \"\"],\"evidence\":[{\"title\":\"E\"}]}\n";
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(ndjson, System.Text.Encoding.UTF8, "application/x-ndjson")
+            });
+        });
+
+        var client = new AgentClient(new HttpClient(mockHandler), config);
+        var store = new ReviewSessionStore(client);
+        var finding = new ReviewFinding
+        {
+            FindingId = "find-01-brand",
+            Label = "LumaLeaf Logo",
+            Observation = "Green stylized leaf logo",
+            ResearchObjective = "Verify Objective"
+        };
+        store.Session.Findings.Add(finding);
+        store.Session.IsAnalysisComplete = true;
+
+        await store.BeginResearchAsync("find-01-brand");
+
+        Assert.Equal("incomplete", store.Session.ResearchStatus["find-01-brand"]);
+    }
+
+    [Fact]
+    public async Task FixtureSummaries_MakeNoExecutedSearchOutcomeClaim()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "UseFixtures", "true" }
+            })
+            .Build();
+
+        var client = new AgentClient(new HttpClient(), config);
+
+        // Act & Assert for brand
+        var brandFinding = new ReviewFinding
+        {
+            FindingId = "find-01-brand",
+            Label = "LumaLeaf Logo",
+            Observation = "Green stylized leaf logo",
+            ResearchObjective = "Determine if matches registered trademarks"
+        };
+        var brandEvents = new List<ResearchEvent>();
+        await foreach (var ev in client.ResearchStreamAsync(brandFinding))
+        {
+            brandEvents.Add(ev);
+        }
+        var brandReady = brandEvents[^1];
+        Assert.NotNull(brandReady.Evidence);
+        foreach (var ev in brandReady.Evidence)
+        {
+            Assert.Contains("Fixture demonstration—no search executed.", ev.RelevanceSummary);
+            Assert.Contains("starting point", ev.RelevanceSummary);
+            Assert.Contains("human search", ev.RelevanceSummary);
+            Assert.Contains("No final clearance or ownership conclusion", ev.RelevanceSummary);
+        }
+    }
+
+    private class MockHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _handler;
+
+        public MockHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> handler)
+        {
+            _handler = handler;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
+        {
+            return _handler(request);
+        }
     }
 }

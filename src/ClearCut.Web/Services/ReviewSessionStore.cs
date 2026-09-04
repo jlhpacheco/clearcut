@@ -72,7 +72,8 @@ public class ReviewSessionStore
             throw new InvalidOperationException("An operation is already in progress.");
         }
 
-        if (!_session.Findings.Any(f => f.FindingId == findingId))
+        var finding = _session.Findings.FirstOrDefault(f => f.FindingId == findingId);
+        if (finding == null)
         {
             throw new ArgumentException("Finding not found in current session.", nameof(findingId));
         }
@@ -83,7 +84,7 @@ public class ReviewSessionStore
 
         try
         {
-            await foreach (var ev in _agentClient.ResearchStreamAsync(findingId))
+            await foreach (var ev in _agentClient.ResearchStreamAsync(finding))
             {
                 if (ev.Status == "preparing" || ev.Status == "searching" || ev.Status == "reviewing")
                 {
@@ -95,8 +96,31 @@ public class ReviewSessionStore
                 }
                 else if (ev.Status == "ready")
                 {
-                    _session.ResearchStatus[findingId] = "ready";
-                    _session.Evidence[findingId] = ev.Evidence ?? new List<EvidenceSource>();
+                    var hasEvidence = ev.Evidence != null && ev.Evidence.Any();
+                    var hasTrace = !string.IsNullOrWhiteSpace(ev.Objective) &&
+                                   !string.IsNullOrWhiteSpace(ev.SessionId) &&
+                                   !string.IsNullOrWhiteSpace(ev.SearchId) &&
+                                   !string.IsNullOrWhiteSpace(ev.RetrievalTime);
+                    var cleanQueries = ev.Queries?.Where(q => !string.IsNullOrWhiteSpace(q)).ToList() ?? new List<string>();
+                    var hasValidQueries = cleanQueries.Count >= 1 && cleanQueries.Count <= 3;
+                    if (hasEvidence && hasTrace && hasValidQueries)
+                    {
+                        _session.ResearchStatus[findingId] = "ready";
+                        _session.Evidence[findingId] = ev.Evidence!;
+                        _session.ResearchTraces[findingId] = new ResearchTrace
+                        {
+                            FindingId = findingId,
+                            Objective = ev.Objective!,
+                            Queries = cleanQueries,
+                            SessionId = ev.SessionId!,
+                            SearchId = ev.SearchId!,
+                            RetrievalTime = ev.RetrievalTime!
+                        };
+                    }
+                    else
+                    {
+                        _session.ResearchStatus[findingId] = "incomplete";
+                    }
                 }
                 else if (ev.Status == "incomplete")
                 {

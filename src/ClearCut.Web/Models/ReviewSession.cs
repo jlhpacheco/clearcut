@@ -26,6 +26,9 @@ public class ReviewSession
     // The finding ID currently undergoing live research, if any
     public string? ActiveResearchFindingId { get; set; }
 
+    // Maps FindingId to its complete research trace metadata
+    public Dictionary<string, ResearchTrace> ResearchTraces { get; set; } = new();
+
     public void Reset()
     {
         Findings.Clear();
@@ -38,5 +41,6 @@ public class ReviewSession
         IsAnalysisComplete = false;
         AnalysisError = null;
         ActiveResearchFindingId = null;
+        ResearchTraces.Clear();
     }
 }

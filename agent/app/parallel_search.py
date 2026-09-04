@@ -18,14 +18,14 @@ def get_fixture_evidence(finding_id: str) -> List[EvidenceSource]:
                 title="United States Patent and Trademark Office TESS Database",
                 publisher="uspto.gov",
                 retrieval_date=current_date,
-                relevance_summary="No active trademark registrations found for 'LumaLeaf' or 'LumaLeaf Energy' under class 042 (Energy).",
+                relevance_summary="This is demonstration evidence and does not represent an executed search. This card points a reviewer to an official search starting point; a human must perform and document the search. No clearance conclusion is implied.",
                 url="https://www.uspto.gov/trademarks"
             ),
             EvidenceSource(
                 title="Global Brand Database",
                 publisher="wipo.int",
                 retrieval_date=current_date,
-                relevance_summary="No active international trademark filings found matching 'LumaLeaf' with a stylized leaf emblem.",
+                relevance_summary="This is demonstration evidence and does not represent an executed search. This card points a reviewer to an official search starting point; a human must perform and document the search. No clearance conclusion is implied.",
                 url="https://www.wipo.int/reference/en/branddb/"
             )
         ],
@@ -34,7 +34,7 @@ def get_fixture_evidence(finding_id: str) -> List[EvidenceSource]:
                 title="LumaLeaf Fictional Energy Study Page",
                 publisher="clearcut.web",
                 retrieval_date=current_date,
-                relevance_summary="Contains the unique verification token CC-EVID-9F4D. Explicitly states that LumaLeaf Energy and its 76% comparison claims are entirely fictional demonstration data.",
+                relevance_summary="This is demonstration evidence containing the verification token CC-EVID-9F4D. LumaLeaf and its 76% claim are fictional demonstration content. No search was executed and no clearance conclusion is implied.",
                 url="http://localhost:5000/evidence/lumaleaf-energy-study"
             )
         ],
@@ -43,14 +43,14 @@ def get_fixture_evidence(finding_id: str) -> List[EvidenceSource]:
                 title="APM Music Search and Licensing",
                 publisher="apmmusic.com",
                 retrieval_date=current_date,
-                relevance_summary="No audio matches found in the APM production music catalogs for this background track. Music cue is likely an original custom-composed track.",
+                relevance_summary="This is demonstration evidence illustrating possible catalog research. A human must perform and document the search; this demo makes no ownership or licensing conclusion, and no search was executed.",
                 url="https://www.apmmusic.com"
             ),
             EvidenceSource(
                 title="Shazam Audio Fingerprinting Service",
                 publisher="shazam.com",
                 retrieval_date=current_date,
-                relevance_summary="No matches found in the commercial music catalog. Supports the finding that this is an original or unreleased composition.",
+                relevance_summary="This is demonstration evidence illustrating possible fingerprinting research. A human must perform and document the search; this demo makes no ownership or licensing conclusion, and no search was executed.",
                 url="https://www.shazam.com"
             )
         ]
@@ -66,13 +66,29 @@ async def execute_parallel_search(
 ) -> Dict[str, Any]:
     current_date = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
     retrieval_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    
+
+    if not isinstance(queries, list):
+        raise ValueError("Queries must be a list.")
+    trimmed_queries = [q.strip() for q in queries if isinstance(q, str) and q.strip()]
+    if not (1 <= len(trimmed_queries) <= 3):
+        raise ValueError("Must provide between 1 and 3 nonblank queries.")
+
+    if not objective or not isinstance(objective, str) or not objective.strip():
+        raise ValueError("Objective must be a nonblank string.")
+    trimmed_objective = objective.strip()
+
+    if not session_id or not isinstance(session_id, str) or not session_id.strip():
+        raise ValueError("Session ID must be a nonblank string.")
+    trimmed_session_id = session_id.strip()
+
     if settings.USE_FIXTURES:
-        # If in fixture mode, this helper won't run, but we return empty for safety
         return {
             "evidence": [],
             "search_id": f"srch_fix_{str(uuid.uuid4())[:8]}",
-            "retrieval_time": retrieval_time
+            "session_id": trimmed_session_id,
+            "retrieval_time": retrieval_time,
+            "objective": trimmed_objective,
+            "queries": trimmed_queries
         }
 
     headers = {
@@ -80,17 +96,18 @@ async def execute_parallel_search(
         "Content-Type": "application/json"
     }
     
-    # Correct Parallel Search API v1 request/response handling schema exactly
     payload = {
-        "search_queries": queries,
-        "objective": objective,
-        "mode": "advanced",
-        "max_chars_total": 5000,
+        "search_queries": trimmed_queries,
+        "objective": trimmed_objective,
+        "session_id": trimmed_session_id,
+        "mode": "basic",
+        "max_chars_total": 3600,
         "client_model": settings.GEMINI_MODEL,
-        "session_id": session_id,
         "advanced_settings": {
-            "max_results": max_results,
-            "excerpt_settings": {}
+            "max_results": min(max_results, 3),
+            "excerpt_settings": {
+                "max_chars_per_result": 1200
+            }
         }
     }
     
@@ -98,7 +115,6 @@ async def execute_parallel_search(
         payload["advanced_settings"]["source_policy"] = source_policy
         
     try:
-        # EXACTLY ONE POST, NO RETRIES! Timeout set to 10.0 seconds.
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 "https://api.parallel.ai/v1/search",
@@ -108,57 +124,74 @@ async def execute_parallel_search(
             response.raise_for_status()
             data = response.json()
             
-            search_id = data.get("search_id") or f"srch-{uuid.uuid4().hex[:12]}"
-            
-            # Map external Parallel Search results to our EvidenceSource contract
+            search_id = data.get("search_id")
+            returned_session_id = data.get("session_id")
+            if not search_id or not returned_session_id:
+                raise RuntimeError("Missing search_id or session_id in response.")
+            if returned_session_id != trimmed_session_id:
+                raise RuntimeError("Returned session_id conflicts with requested session_id.")
+
             sources: List[EvidenceSource] = []
             seen_urls = set()
             
             results = data.get("results", [])
             for res in results:
-                url = res.get("url", "")
-                if not url:
+                url = res.get("url")
+                if not url or not isinstance(url, str):
                     continue
-                    
-                # Normalize and deduplicate only returned HTTP(S) URLs
+                url = url.strip()
+
                 if not (url.startswith("http://") or url.startswith("https://")):
                     continue
-                    
-                if url in seen_urls:
+
+                normalized_url = url.rstrip('/')
+                if normalized_url in seen_urls:
                     continue
-                seen_urls.add(url)
-                
-                # Fetch publisher from host domain
-                publisher = url.split("//")[-1].split("/")[0]
-                
-                # Parse excerpts array
-                excerpts = res.get("excerpts", [])
-                relevance_summary = " ".join(excerpts) if excerpts else res.get("snippet", res.get("excerpt", ""))
-                
+                seen_urls.add(normalized_url)
+
+                try:
+                    publisher = url.split("//")[-1].split("/")[0]
+                except Exception:
+                    publisher = "unknown"
+
+                excerpts = res.get("excerpts")
+                if isinstance(excerpts, list):
+                    relevance_summary = " ".join([str(e) for e in excerpts if e])
+                else:
+                    relevance_summary = res.get("snippet") or res.get("excerpt") or ""
+
+                if not relevance_summary:
+                    relevance_summary = "No summary available."
+
                 sources.append(EvidenceSource(
-                    title=res.get("title", "Untitled Source"),
+                    title=res.get("title") or "Untitled Source",
                     publisher=publisher,
                     retrieval_date=current_date,
-                    relevance_summary=relevance_summary or "No summary available.",
+                    relevance_summary=relevance_summary,
                     url=url
                 ))
-                
-                if len(sources) >= max_results:
+
+                if len(sources) >= 3:
                     break
-                    
+
+            if not sources:
+                raise RuntimeError("No usable evidence sources found.")
+
             return {
                 "evidence": sources,
                 "search_id": search_id,
-                "retrieval_time": retrieval_time
+                "session_id": returned_session_id,
+                "retrieval_time": retrieval_time,
+                "objective": trimmed_objective,
+                "queries": trimmed_queries
             }
-            
+
     except Exception as e:
-        # Sanitized structured logging and stable client-safe errors
         logger.error(
             "Parallel Search API request failed.",
             extra={
                 "exception_class": type(e).__name__,
-                "session_id": session_id
+                "session_id": trimmed_session_id
             }
         )
         raise RuntimeError("Evidence search failed. Service unavailable.")

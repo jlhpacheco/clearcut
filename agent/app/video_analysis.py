@@ -1,8 +1,11 @@
 import os
 import json
+import logging
 from typing import List
 from app.contracts import ReviewFinding, AnalysisResponse
 from app.settings import settings
+
+logger = logging.getLogger(__name__)
 
 def get_fixture_findings() -> List[ReviewFinding]:
     # Load from shared contract file contracts/golden-review.json
@@ -94,6 +97,10 @@ async def analyze_video(video_uri: str) -> AnalysisResponse:
     except ImportError:
         raise RuntimeError("Google GenAI SDK is not installed in the environment. Please run in fixture mode or install google-genai.")
     except Exception as e:
-        # Stable public error message; log sanitized details server-side
-        print(f"INTERNAL ERROR: Gemini video analysis failed: {str(e)}")
+        logger.error(
+            "Gemini video analysis failed.",
+            extra={
+                "exception_class": type(e).__name__
+            }
+        )
         raise RuntimeError("Gemini video analysis failed. Service unavailable.")

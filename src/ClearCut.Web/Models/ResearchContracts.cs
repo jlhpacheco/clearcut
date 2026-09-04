@@ -33,4 +33,29 @@ public class ResearchEvent
 
     [JsonPropertyName("error")]
     public string? Error { get; set; }
+
+    [JsonPropertyName("queries")]
+    public List<string>? Queries { get; set; }
+
+    [JsonPropertyName("objective")]
+    public string? Objective { get; set; }
+
+    [JsonPropertyName("session_id")]
+    public string? SessionId { get; set; }
+
+    [JsonPropertyName("search_id")]
+    public string? SearchId { get; set; }
+
+    [JsonPropertyName("retrieval_time")]
+    public string? RetrievalTime { get; set; }
+}
+
+public class ResearchTrace
+{
+    public string FindingId { get; set; } = string.Empty;
+    public string Objective { get; set; } = string.Empty;
+    public List<string> Queries { get; set; } = new();
+    public string SessionId { get; set; } = string.Empty;
+    public string SearchId { get; set; } = string.Empty;
+    public string RetrievalTime { get; set; } = string.Empty;
 }

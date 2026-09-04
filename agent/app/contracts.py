@@ -81,3 +81,5 @@ class ResearchEvent(BaseModel):
     session_id: Optional[str] = Field(None, description="Stable session ID to prove the call")
     search_id: Optional[str] = Field(None, description="The unique search ID returned by the search service")
     retrieval_time: Optional[str] = Field(None, description="ISO timestamp of the search retrieval")
+    queries: Optional[List[str]] = Field(None, description="The actual queries formulated by the agent")
+    objective: Optional[str] = Field(None, description="The actual objective formulated by the agent")

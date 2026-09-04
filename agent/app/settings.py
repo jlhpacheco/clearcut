@@ -9,8 +9,8 @@ class Settings:
     GOOGLE_CLOUD_PROJECT: str = os.getenv("GOOGLE_CLOUD_PROJECT", "clearcut-agentic-20260901")
     GOOGLE_CLOUD_PROJECT_NUMBER: str = os.getenv("GOOGLE_CLOUD_PROJECT_NUMBER", "328400425249")
     GOOGLE_CLOUD_LOCATION: str = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
-    DEMO_VIDEO_GCS_URI: str = os.getenv("DEMO_VIDEO_GCS_URI", "gs://clearcut-bucket/clearcut-demo.mp4")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    DEMO_VIDEO_GCS_URI: str = os.getenv("DEMO_VIDEO_GCS_URI", "gs://clearcut-agentic-20260901-media-328400425249/clearcut-demo.mp4")
     PARALLEL_API_KEY: Optional[str] = os.getenv("PARALLEL_API_KEY")
     
     # Environment mode: "development" or "production"

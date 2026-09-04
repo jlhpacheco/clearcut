@@ -9,5 +9,6 @@ agent:
   environment:
     GOOGLE_CLOUD_PROJECT: "clearcut-agentic-20260901"
     GOOGLE_CLOUD_LOCATION: "us-central1"
-    GEMINI_MODEL: "gemini-2.5-pro"
-    DEMO_VIDEO_GCS_URI: "gs://clearcut-bucket/clearcut-demo.mp4"
+    GOOGLE_CLOUD_PROJECT_NUMBER: "328400425249"
+    GEMINI_MODEL: "gemini-3.5-flash"
+    DEMO_VIDEO_GCS_URI: "gs://clearcut-agentic-20260901-media-328400425249/clearcut-demo.mp4"
